@@ -1,0 +1,1591 @@
+-- ============================================================================
+-- Persona Agent Database Schema
+-- Supabase PostgreSQL + pgvector
+-- ============================================================================
+
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- ============================================================================
+-- 1. TABLES
+-- ============================================================================
+
+-- 사용자 프로필 (Supabase Auth 연동)
+CREATE TABLE profiles (
+  id UUID REFERENCES auth.users(id) PRIMARY KEY,
+  email TEXT UNIQUE,
+  full_name TEXT,
+  avatar_url TEXT,
+  
+  -- 사용자 자신의 심리 유형 (선택)
+  mbti VARCHAR(4),
+  disc VARCHAR(2),
+  enneagram VARCHAR(10),
+  blood_type VARCHAR(3),
+  
+  -- 메타데이터
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE profiles IS '사용자 프로필 - Supabase Auth users 연동';
+COMMENT ON COLUMN profiles.mbti IS 'MBTI 유형 (ISTJ, ENTP 등)';
+COMMENT ON COLUMN profiles.disc IS 'DiSC 스타일 (DI, SC 등)';
+COMMENT ON COLUMN profiles.enneagram IS '애니어그램 유형 (1w2, 5w6 등)';
+
+-- ============================================================================
+
+-- 페르소나 프로필 (AI 캐릭터)
+CREATE TABLE persona_profiles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  
+  -- 페르소나 기본 정보
+  persona_name VARCHAR(100) NOT NULL,
+  persona_alias VARCHAR(100),
+  
+  -- 심리 프로필 (MBTI만 필수, 나머지 선택)
+  mbti VARCHAR(4) NOT NULL,           -- 필수: 최소한의 페르소나 정의
+  disc VARCHAR(2),                    -- 선택: 있으면 더 정교한 행동 패턴
+  enneagram VARCHAR(10),              -- 선택: 있으면 더 깊은 동기 이해
+  
+  -- 특성 데이터 (JSONB - 유연한 확장)
+  traits JSONB DEFAULT '{}',
+  communication_style JSONB DEFAULT '{}',
+  behavioral_patterns JSONB DEFAULT '{}',
+  
+  -- 벡터 임베딩 (OpenAI text-embedding-3-small: 1536 dimensions)
+  profile_embedding vector(1536),
+  
+  -- 사용 통계
+  is_active BOOLEAN DEFAULT true,
+  usage_count INTEGER DEFAULT 0,
+  last_used_at TIMESTAMP,
+  
+  -- 메타데이터
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_mbti CHECK (mbti ~ '^[EI][SN][TF][JP]
+
+-- ============================================================================
+
+-- 대화 패턴 지식 베이스 (전역 공유)
+CREATE TABLE conversation_patterns (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  
+  -- 페르소나 타입 (MBTI 필수, 나머지 선택)
+  mbti VARCHAR(4) NOT NULL,
+  disc VARCHAR(2),                    -- NULL 가능
+  enneagram VARCHAR(10),              -- NULL 가능
+  
+  -- 관계 맥락
+  relationship_type VARCHAR(20) NOT NULL, -- 'superior', 'peer', 'subordinate'
+  conversation_topic VARCHAR(100),
+  emotional_context VARCHAR(50),
+  
+  -- 패턴 데이터
+  pattern_category VARCHAR(50) NOT NULL, -- 'greeting', 'feedback', 'conflict'...
+  pattern_text TEXT NOT NULL,
+  example_responses JSONB DEFAULT '[]',
+  
+  -- 벡터 임베딩 (패턴 검색용)
+  pattern_embedding vector(1536),
+  
+  -- 품질 지표
+  effectiveness_score FLOAT DEFAULT 0.7,
+  usage_frequency INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_effectiveness CHECK (effectiveness_score BETWEEN 0 AND 1)
+);
+
+COMMENT ON TABLE conversation_patterns IS '대화 패턴 지식 베이스 - MBTI 필수, DiSC/애니어그램 선택 (계층적 폴백)';
+COMMENT ON COLUMN conversation_patterns.mbti IS 'MBTI 유형 (필수)';
+COMMENT ON COLUMN conversation_patterns.disc IS 'DiSC 스타일 (NULL 허용, 더 세밀한 패턴)';
+COMMENT ON COLUMN conversation_patterns.enneagram IS '애니어그램 유형 (NULL 허용, 더 깊이있는 패턴)';
+COMMENT ON COLUMN conversation_patterns.pattern_embedding IS '패턴 벡터 임베딩 (유사도 검색용)';
+COMMENT ON COLUMN conversation_patterns.example_responses IS '예시 응답 배열';
+
+-- ============================================================================
+
+-- 대화 세션
+CREATE TABLE chat_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  persona_profile_id UUID REFERENCES persona_profiles(id) ON DELETE SET NULL,
+  
+  -- 세션 설정
+  relationship_type VARCHAR(20) NOT NULL,
+  session_status VARCHAR(20) DEFAULT 'active',
+  
+  -- 세션 메타데이터
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ended_at TIMESTAMP,
+  message_count INTEGER DEFAULT 0,
+  total_tokens_used INTEGER DEFAULT 0,
+  session_metadata JSONB DEFAULT '{}',
+  
+  -- 제약조건
+  CONSTRAINT valid_session_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_session_status CHECK (session_status IN ('active', 'ended', 'archived'))
+);
+
+COMMENT ON TABLE chat_sessions IS '대화 세션 - 페르소나와의 대화 단위';
+COMMENT ON COLUMN chat_sessions.relationship_type IS '대화 관계 (상급자/동료/하급자)';
+
+-- ============================================================================
+
+-- 대화 메시지
+CREATE TABLE chat_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  
+  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  
+  -- 메타데이터
+  tokens_used INTEGER,
+  response_time_ms INTEGER,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_role CHECK (role IN ('user', 'assistant', 'system'))
+);
+
+COMMENT ON TABLE chat_messages IS '대화 메시지 - 사용자와 AI의 대화 내용';
+
+-- ============================================================================
+-- 2. INDEXES
+-- ============================================================================
+
+-- Profiles 인덱스
+CREATE INDEX idx_profiles_email ON profiles(email);
+CREATE INDEX idx_profiles_created_at ON profiles(created_at);
+
+-- Persona Profiles 인덱스
+CREATE INDEX idx_persona_user ON persona_profiles(user_id);
+CREATE INDEX idx_persona_types ON persona_profiles(mbti, disc, enneagram);
+CREATE INDEX idx_persona_active ON persona_profiles(is_active) WHERE is_active = true;
+CREATE INDEX idx_persona_usage ON persona_profiles(usage_count DESC);
+
+-- pgvector 인덱스 (코사인 유사도)
+-- lists = 100: 10,000 rows까지 최적화
+CREATE INDEX idx_persona_embedding ON persona_profiles 
+  USING ivfflat (profile_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Conversation Patterns 인덱스
+CREATE INDEX idx_pattern_search ON conversation_patterns(mbti, disc, enneagram, relationship_type);
+CREATE INDEX idx_pattern_category ON conversation_patterns(pattern_category);
+
+-- pgvector 인덱스
+CREATE INDEX idx_pattern_embedding ON conversation_patterns 
+  USING ivfflat (pattern_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Chat Sessions 인덱스
+CREATE INDEX idx_session_user ON chat_sessions(user_id);
+CREATE INDEX idx_session_persona ON chat_sessions(persona_profile_id);
+CREATE INDEX idx_session_status ON chat_sessions(session_status);
+CREATE INDEX idx_session_started ON chat_sessions(started_at DESC);
+
+-- Chat Messages 인덱스
+CREATE INDEX idx_message_session ON chat_messages(session_id);
+CREATE INDEX idx_message_created ON chat_messages(created_at);
+
+-- ============================================================================
+-- 3. ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+
+-- 모든 테이블 RLS 활성화
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE persona_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Profiles 정책: 사용자는 자신의 프로필만 접근
+CREATE POLICY "Users can view own profile" 
+  ON profiles FOR SELECT 
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" 
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
+
+-- Persona Profiles 정책: 사용자는 자신의 페르소나만 관리
+CREATE POLICY "Users can view own personas" 
+  ON persona_profiles FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own personas" 
+  ON persona_profiles FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own personas" 
+  ON persona_profiles FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own personas" 
+  ON persona_profiles FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Conversation Patterns 정책: 모든 인증 사용자 읽기 가능
+CREATE POLICY "Authenticated users can read patterns" 
+  ON conversation_patterns FOR SELECT 
+  TO authenticated 
+  USING (true);
+
+-- Chat Sessions 정책: 사용자는 자신의 세션만 관리
+CREATE POLICY "Users can manage own sessions" 
+  ON chat_sessions FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Chat Messages 정책: 세션 소유자만 메시지 접근
+CREATE POLICY "Users can view own messages" 
+  ON chat_messages FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create own messages" 
+  ON chat_messages FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+-- ============================================================================
+-- 4. DATABASE FUNCTIONS
+-- ============================================================================
+
+-- 유사 패턴 검색 함수 (벡터 유사도)
+CREATE OR REPLACE FUNCTION search_similar_patterns(
+  query_embedding vector(1536),
+  target_mbti VARCHAR(4),
+  target_disc VARCHAR(2) DEFAULT NULL,        -- NULL 허용
+  target_enneagram VARCHAR(10) DEFAULT NULL,  -- NULL 허용
+  target_relationship VARCHAR(20),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  pattern_text TEXT,
+  example_responses JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cp.id,
+    cp.pattern_text,
+    cp.example_responses,
+    1 - (cp.pattern_embedding <=> query_embedding) AS similarity
+  FROM conversation_patterns cp
+  WHERE 
+    cp.mbti = target_mbti 
+    -- DiSC 매칭: NULL이면 무시, 값이 있으면 정확히 매칭
+    AND (target_disc IS NULL OR cp.disc IS NULL OR cp.disc = target_disc)
+    -- 애니어그램 매칭: NULL이면 무시, 값이 있으면 정확히 매칭
+    AND (target_enneagram IS NULL OR cp.enneagram IS NULL OR cp.enneagram = target_enneagram)
+    AND cp.relationship_type = target_relationship
+    AND 1 - (cp.pattern_embedding <=> query_embedding) > match_threshold
+  ORDER BY 
+    -- NULL이 아닌 매칭 우선 (더 정교한 패턴)
+    CASE 
+      WHEN cp.disc = target_disc AND cp.enneagram = target_enneagram THEN 0
+      WHEN cp.disc = target_disc OR cp.enneagram = target_enneagram THEN 1
+      ELSE 2
+    END,
+    cp.pattern_embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$;
+
+COMMENT ON FUNCTION search_similar_patterns IS '벡터 유사도 기반 대화 패턴 검색 (DiSC/애니어그램 NULL 허용, 계층적 매칭)';
+
+-- ============================================================================
+
+-- 페르소나 사용 통계 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_persona_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE persona_profiles
+  SET 
+    usage_count = usage_count + 1,
+    last_used_at = NOW()
+  WHERE id = NEW.persona_profile_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_session_created
+  AFTER INSERT ON chat_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_persona_usage();
+
+COMMENT ON FUNCTION update_persona_usage IS '세션 생성 시 페르소나 사용 횟수 자동 증가';
+
+-- ============================================================================
+
+-- 세션 메시지 카운트 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_session_message_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE chat_sessions
+  SET 
+    message_count = message_count + 1,
+    total_tokens_used = total_tokens_used + COALESCE(NEW.tokens_used, 0)
+  WHERE id = NEW.session_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_message_created
+  AFTER INSERT ON chat_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_message_count();
+
+COMMENT ON FUNCTION update_session_message_count IS '메시지 생성 시 세션 통계 자동 업데이트';
+
+-- ============================================================================
+
+-- 프로필 업데이트 시간 자동 갱신 트리거
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_persona_profiles_updated_at
+  BEFORE UPDATE ON persona_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- 5. UTILITY VIEWS (선택사항)
+-- ============================================================================
+
+-- 활성 페르소나 통계 뷰
+CREATE OR REPLACE VIEW active_persona_stats AS
+SELECT 
+  p.id,
+  p.persona_name,
+  p.mbti,
+  p.disc,
+  p.enneagram,
+  p.usage_count,
+  p.last_used_at,
+  COUNT(DISTINCT cs.id) as session_count,
+  COALESCE(SUM(cs.message_count), 0) as total_messages
+FROM persona_profiles p
+LEFT JOIN chat_sessions cs ON p.id = cs.persona_profile_id
+WHERE p.is_active = true
+GROUP BY p.id;
+
+COMMENT ON VIEW active_persona_stats IS '활성 페르소나 사용 통계';
+
+-- ============================================================================
+-- 6. INITIAL DATA (선택사항)
+-- ============================================================================
+
+-- 샘플 대화 패턴 (개발/테스트용)
+INSERT INTO conversation_patterns (
+  mbti, disc, enneagram, relationship_type, 
+  pattern_category, pattern_text, example_responses
+) VALUES 
+(
+  'ISTJ', 'CS', '1w2', 'superior',
+  'feedback',
+  '부하 직원의 실수에 대해 건설적인 피드백 제공',
+  '["이번 실수를 통해 배운 점이 있나요?", "다음부터는 체크리스트를 활용해보세요.", "정확성을 높이기 위한 프로세스를 만들어봅시다."]'::jsonb
+),
+(
+  'ENTP', 'DI', '7w8', 'peer',
+  'greeting',
+  '동료와의 캐주얼한 인사 및 대화 시작',
+  '["오늘 뭐 재밌는 일 없어?", "새로운 아이디어 있으면 같이 얘기해보자!", "점심 먹으면서 브레인스토밍 어때?"]'::jsonb
+);
+
+-- ============================================================================
+-- 완료
+-- ============================================================================
+
+-- 설치 확인 쿼리
+SELECT 
+  'pgvector extension' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') 
+    THEN '✓ Installed' 
+    ELSE '✗ Not installed' 
+  END as status
+UNION ALL
+SELECT 
+  'Tables created' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'persona_profiles') 
+    THEN '✓ Success' 
+    ELSE '✗ Failed' 
+  END as status
+UNION ALL
+SELECT 
+  'RLS enabled' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'persona_profiles' AND rowsecurity = true) 
+    THEN '✓ Enabled' 
+    ELSE '✗ Disabled' 
+  END as status;),
+  CONSTRAINT valid_disc CHECK (disc IS NULL OR disc ~ '^[DISC]{1,2}
+
+-- ============================================================================
+
+-- 대화 패턴 지식 베이스 (전역 공유)
+CREATE TABLE conversation_patterns (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  
+  -- 페르소나 타입 (3가지 조합)
+  mbti VARCHAR(4) NOT NULL,
+  disc VARCHAR(2) NOT NULL,
+  enneagram VARCHAR(10) NOT NULL,
+  
+  -- 관계 맥락
+  relationship_type VARCHAR(20) NOT NULL, -- 'superior', 'peer', 'subordinate'
+  conversation_topic VARCHAR(100),
+  emotional_context VARCHAR(50),
+  
+  -- 패턴 데이터
+  pattern_category VARCHAR(50) NOT NULL, -- 'greeting', 'feedback', 'conflict'...
+  pattern_text TEXT NOT NULL,
+  example_responses JSONB DEFAULT '[]',
+  
+  -- 벡터 임베딩 (패턴 검색용)
+  pattern_embedding vector(1536),
+  
+  -- 품질 지표
+  effectiveness_score FLOAT DEFAULT 0.7,
+  usage_frequency INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_effectiveness CHECK (effectiveness_score BETWEEN 0 AND 1)
+);
+
+COMMENT ON TABLE conversation_patterns IS '대화 패턴 지식 베이스 - 심리 조합별 대화 스타일';
+COMMENT ON COLUMN conversation_patterns.pattern_embedding IS '패턴 벡터 임베딩 (유사도 검색용)';
+COMMENT ON COLUMN conversation_patterns.example_responses IS '예시 응답 배열';
+
+-- ============================================================================
+
+-- 대화 세션
+CREATE TABLE chat_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  persona_profile_id UUID REFERENCES persona_profiles(id) ON DELETE SET NULL,
+  
+  -- 세션 설정
+  relationship_type VARCHAR(20) NOT NULL,
+  session_status VARCHAR(20) DEFAULT 'active',
+  
+  -- 세션 메타데이터
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ended_at TIMESTAMP,
+  message_count INTEGER DEFAULT 0,
+  total_tokens_used INTEGER DEFAULT 0,
+  session_metadata JSONB DEFAULT '{}',
+  
+  -- 제약조건
+  CONSTRAINT valid_session_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_session_status CHECK (session_status IN ('active', 'ended', 'archived'))
+);
+
+COMMENT ON TABLE chat_sessions IS '대화 세션 - 페르소나와의 대화 단위';
+COMMENT ON COLUMN chat_sessions.relationship_type IS '대화 관계 (상급자/동료/하급자)';
+
+-- ============================================================================
+
+-- 대화 메시지
+CREATE TABLE chat_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  
+  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  
+  -- 메타데이터
+  tokens_used INTEGER,
+  response_time_ms INTEGER,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_role CHECK (role IN ('user', 'assistant', 'system'))
+);
+
+COMMENT ON TABLE chat_messages IS '대화 메시지 - 사용자와 AI의 대화 내용';
+
+-- ============================================================================
+-- 2. INDEXES
+-- ============================================================================
+
+-- Profiles 인덱스
+CREATE INDEX idx_profiles_email ON profiles(email);
+CREATE INDEX idx_profiles_created_at ON profiles(created_at);
+
+-- Persona Profiles 인덱스
+CREATE INDEX idx_persona_user ON persona_profiles(user_id);
+CREATE INDEX idx_persona_types ON persona_profiles(mbti, disc, enneagram);
+CREATE INDEX idx_persona_active ON persona_profiles(is_active) WHERE is_active = true;
+CREATE INDEX idx_persona_usage ON persona_profiles(usage_count DESC);
+
+-- pgvector 인덱스 (코사인 유사도)
+-- lists = 100: 10,000 rows까지 최적화
+CREATE INDEX idx_persona_embedding ON persona_profiles 
+  USING ivfflat (profile_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Conversation Patterns 인덱스
+CREATE INDEX idx_pattern_search ON conversation_patterns(mbti, disc, enneagram, relationship_type);
+CREATE INDEX idx_pattern_category ON conversation_patterns(pattern_category);
+
+-- pgvector 인덱스
+CREATE INDEX idx_pattern_embedding ON conversation_patterns 
+  USING ivfflat (pattern_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Chat Sessions 인덱스
+CREATE INDEX idx_session_user ON chat_sessions(user_id);
+CREATE INDEX idx_session_persona ON chat_sessions(persona_profile_id);
+CREATE INDEX idx_session_status ON chat_sessions(session_status);
+CREATE INDEX idx_session_started ON chat_sessions(started_at DESC);
+
+-- Chat Messages 인덱스
+CREATE INDEX idx_message_session ON chat_messages(session_id);
+CREATE INDEX idx_message_created ON chat_messages(created_at);
+
+-- ============================================================================
+-- 3. ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+
+-- 모든 테이블 RLS 활성화
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE persona_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Profiles 정책: 사용자는 자신의 프로필만 접근
+CREATE POLICY "Users can view own profile" 
+  ON profiles FOR SELECT 
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" 
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
+
+-- Persona Profiles 정책: 사용자는 자신의 페르소나만 관리
+CREATE POLICY "Users can view own personas" 
+  ON persona_profiles FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own personas" 
+  ON persona_profiles FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own personas" 
+  ON persona_profiles FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own personas" 
+  ON persona_profiles FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Conversation Patterns 정책: 모든 인증 사용자 읽기 가능
+CREATE POLICY "Authenticated users can read patterns" 
+  ON conversation_patterns FOR SELECT 
+  TO authenticated 
+  USING (true);
+
+-- Chat Sessions 정책: 사용자는 자신의 세션만 관리
+CREATE POLICY "Users can manage own sessions" 
+  ON chat_sessions FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Chat Messages 정책: 세션 소유자만 메시지 접근
+CREATE POLICY "Users can view own messages" 
+  ON chat_messages FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create own messages" 
+  ON chat_messages FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+-- ============================================================================
+-- 4. DATABASE FUNCTIONS
+-- ============================================================================
+
+-- 유사 패턴 검색 함수 (벡터 유사도)
+CREATE OR REPLACE FUNCTION search_similar_patterns(
+  query_embedding vector(1536),
+  target_mbti VARCHAR(4),
+  target_disc VARCHAR(2),
+  target_enneagram VARCHAR(10),
+  target_relationship VARCHAR(20),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  pattern_text TEXT,
+  example_responses JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cp.id,
+    cp.pattern_text,
+    cp.example_responses,
+    1 - (cp.pattern_embedding <=> query_embedding) AS similarity
+  FROM conversation_patterns cp
+  WHERE 
+    cp.mbti = target_mbti 
+    AND cp.disc = target_disc
+    AND cp.enneagram = target_enneagram
+    AND cp.relationship_type = target_relationship
+    AND 1 - (cp.pattern_embedding <=> query_embedding) > match_threshold
+  ORDER BY cp.pattern_embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+COMMENT ON FUNCTION search_similar_patterns IS '벡터 유사도 기반 대화 패턴 검색';
+
+-- ============================================================================
+
+-- 페르소나 사용 통계 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_persona_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE persona_profiles
+  SET 
+    usage_count = usage_count + 1,
+    last_used_at = NOW()
+  WHERE id = NEW.persona_profile_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_session_created
+  AFTER INSERT ON chat_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_persona_usage();
+
+COMMENT ON FUNCTION update_persona_usage IS '세션 생성 시 페르소나 사용 횟수 자동 증가';
+
+-- ============================================================================
+
+-- 세션 메시지 카운트 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_session_message_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE chat_sessions
+  SET 
+    message_count = message_count + 1,
+    total_tokens_used = total_tokens_used + COALESCE(NEW.tokens_used, 0)
+  WHERE id = NEW.session_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_message_created
+  AFTER INSERT ON chat_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_message_count();
+
+COMMENT ON FUNCTION update_session_message_count IS '메시지 생성 시 세션 통계 자동 업데이트';
+
+-- ============================================================================
+
+-- 프로필 업데이트 시간 자동 갱신 트리거
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_persona_profiles_updated_at
+  BEFORE UPDATE ON persona_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- 5. UTILITY VIEWS (선택사항)
+-- ============================================================================
+
+-- 활성 페르소나 통계 뷰
+CREATE OR REPLACE VIEW active_persona_stats AS
+SELECT 
+  p.id,
+  p.persona_name,
+  p.mbti,
+  p.disc,
+  p.enneagram,
+  p.usage_count,
+  p.last_used_at,
+  COUNT(DISTINCT cs.id) as session_count,
+  COALESCE(SUM(cs.message_count), 0) as total_messages
+FROM persona_profiles p
+LEFT JOIN chat_sessions cs ON p.id = cs.persona_profile_id
+WHERE p.is_active = true
+GROUP BY p.id;
+
+COMMENT ON VIEW active_persona_stats IS '활성 페르소나 사용 통계';
+
+-- ============================================================================
+-- 6. INITIAL DATA (선택사항)
+-- ============================================================================
+
+-- 샘플 대화 패턴 (개발/테스트용)
+INSERT INTO conversation_patterns (
+  mbti, disc, enneagram, relationship_type, 
+  pattern_category, pattern_text, example_responses
+) VALUES 
+(
+  'ISTJ', 'CS', '1w2', 'superior',
+  'feedback',
+  '부하 직원의 실수에 대해 건설적인 피드백 제공',
+  '["이번 실수를 통해 배운 점이 있나요?", "다음부터는 체크리스트를 활용해보세요.", "정확성을 높이기 위한 프로세스를 만들어봅시다."]'::jsonb
+),
+(
+  'ENTP', 'DI', '7w8', 'peer',
+  'greeting',
+  '동료와의 캐주얼한 인사 및 대화 시작',
+  '["오늘 뭐 재밌는 일 없어?", "새로운 아이디어 있으면 같이 얘기해보자!", "점심 먹으면서 브레인스토밍 어때?"]'::jsonb
+);
+
+-- ============================================================================
+-- 완료
+-- ============================================================================
+
+-- 설치 확인 쿼리
+SELECT 
+  'pgvector extension' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') 
+    THEN '✓ Installed' 
+    ELSE '✗ Not installed' 
+  END as status
+UNION ALL
+SELECT 
+  'Tables created' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'persona_profiles') 
+    THEN '✓ Success' 
+    ELSE '✗ Failed' 
+  END as status
+UNION ALL
+SELECT 
+  'RLS enabled' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'persona_profiles' AND rowsecurity = true) 
+    THEN '✓ Enabled' 
+    ELSE '✗ Disabled' 
+  END as status;),
+  CONSTRAINT valid_enneagram CHECK (enneagram IS NULL OR enneagram ~ '^[1-9]w[1-9]$|^[1-9]
+
+-- ============================================================================
+
+-- 대화 패턴 지식 베이스 (전역 공유)
+CREATE TABLE conversation_patterns (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  
+  -- 페르소나 타입 (3가지 조합)
+  mbti VARCHAR(4) NOT NULL,
+  disc VARCHAR(2) NOT NULL,
+  enneagram VARCHAR(10) NOT NULL,
+  
+  -- 관계 맥락
+  relationship_type VARCHAR(20) NOT NULL, -- 'superior', 'peer', 'subordinate'
+  conversation_topic VARCHAR(100),
+  emotional_context VARCHAR(50),
+  
+  -- 패턴 데이터
+  pattern_category VARCHAR(50) NOT NULL, -- 'greeting', 'feedback', 'conflict'...
+  pattern_text TEXT NOT NULL,
+  example_responses JSONB DEFAULT '[]',
+  
+  -- 벡터 임베딩 (패턴 검색용)
+  pattern_embedding vector(1536),
+  
+  -- 품질 지표
+  effectiveness_score FLOAT DEFAULT 0.7,
+  usage_frequency INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_effectiveness CHECK (effectiveness_score BETWEEN 0 AND 1)
+);
+
+COMMENT ON TABLE conversation_patterns IS '대화 패턴 지식 베이스 - 심리 조합별 대화 스타일';
+COMMENT ON COLUMN conversation_patterns.pattern_embedding IS '패턴 벡터 임베딩 (유사도 검색용)';
+COMMENT ON COLUMN conversation_patterns.example_responses IS '예시 응답 배열';
+
+-- ============================================================================
+
+-- 대화 세션
+CREATE TABLE chat_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  persona_profile_id UUID REFERENCES persona_profiles(id) ON DELETE SET NULL,
+  
+  -- 세션 설정
+  relationship_type VARCHAR(20) NOT NULL,
+  session_status VARCHAR(20) DEFAULT 'active',
+  
+  -- 세션 메타데이터
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ended_at TIMESTAMP,
+  message_count INTEGER DEFAULT 0,
+  total_tokens_used INTEGER DEFAULT 0,
+  session_metadata JSONB DEFAULT '{}',
+  
+  -- 제약조건
+  CONSTRAINT valid_session_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_session_status CHECK (session_status IN ('active', 'ended', 'archived'))
+);
+
+COMMENT ON TABLE chat_sessions IS '대화 세션 - 페르소나와의 대화 단위';
+COMMENT ON COLUMN chat_sessions.relationship_type IS '대화 관계 (상급자/동료/하급자)';
+
+-- ============================================================================
+
+-- 대화 메시지
+CREATE TABLE chat_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  
+  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  
+  -- 메타데이터
+  tokens_used INTEGER,
+  response_time_ms INTEGER,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_role CHECK (role IN ('user', 'assistant', 'system'))
+);
+
+COMMENT ON TABLE chat_messages IS '대화 메시지 - 사용자와 AI의 대화 내용';
+
+-- ============================================================================
+-- 2. INDEXES
+-- ============================================================================
+
+-- Profiles 인덱스
+CREATE INDEX idx_profiles_email ON profiles(email);
+CREATE INDEX idx_profiles_created_at ON profiles(created_at);
+
+-- Persona Profiles 인덱스
+CREATE INDEX idx_persona_user ON persona_profiles(user_id);
+CREATE INDEX idx_persona_types ON persona_profiles(mbti, disc, enneagram);
+CREATE INDEX idx_persona_active ON persona_profiles(is_active) WHERE is_active = true;
+CREATE INDEX idx_persona_usage ON persona_profiles(usage_count DESC);
+
+-- pgvector 인덱스 (코사인 유사도)
+-- lists = 100: 10,000 rows까지 최적화
+CREATE INDEX idx_persona_embedding ON persona_profiles 
+  USING ivfflat (profile_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Conversation Patterns 인덱스
+CREATE INDEX idx_pattern_search ON conversation_patterns(mbti, disc, enneagram, relationship_type);
+CREATE INDEX idx_pattern_category ON conversation_patterns(pattern_category);
+
+-- pgvector 인덱스
+CREATE INDEX idx_pattern_embedding ON conversation_patterns 
+  USING ivfflat (pattern_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Chat Sessions 인덱스
+CREATE INDEX idx_session_user ON chat_sessions(user_id);
+CREATE INDEX idx_session_persona ON chat_sessions(persona_profile_id);
+CREATE INDEX idx_session_status ON chat_sessions(session_status);
+CREATE INDEX idx_session_started ON chat_sessions(started_at DESC);
+
+-- Chat Messages 인덱스
+CREATE INDEX idx_message_session ON chat_messages(session_id);
+CREATE INDEX idx_message_created ON chat_messages(created_at);
+
+-- ============================================================================
+-- 3. ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+
+-- 모든 테이블 RLS 활성화
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE persona_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Profiles 정책: 사용자는 자신의 프로필만 접근
+CREATE POLICY "Users can view own profile" 
+  ON profiles FOR SELECT 
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" 
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
+
+-- Persona Profiles 정책: 사용자는 자신의 페르소나만 관리
+CREATE POLICY "Users can view own personas" 
+  ON persona_profiles FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own personas" 
+  ON persona_profiles FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own personas" 
+  ON persona_profiles FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own personas" 
+  ON persona_profiles FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Conversation Patterns 정책: 모든 인증 사용자 읽기 가능
+CREATE POLICY "Authenticated users can read patterns" 
+  ON conversation_patterns FOR SELECT 
+  TO authenticated 
+  USING (true);
+
+-- Chat Sessions 정책: 사용자는 자신의 세션만 관리
+CREATE POLICY "Users can manage own sessions" 
+  ON chat_sessions FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Chat Messages 정책: 세션 소유자만 메시지 접근
+CREATE POLICY "Users can view own messages" 
+  ON chat_messages FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create own messages" 
+  ON chat_messages FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+-- ============================================================================
+-- 4. DATABASE FUNCTIONS
+-- ============================================================================
+
+-- 유사 패턴 검색 함수 (벡터 유사도)
+CREATE OR REPLACE FUNCTION search_similar_patterns(
+  query_embedding vector(1536),
+  target_mbti VARCHAR(4),
+  target_disc VARCHAR(2),
+  target_enneagram VARCHAR(10),
+  target_relationship VARCHAR(20),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  pattern_text TEXT,
+  example_responses JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cp.id,
+    cp.pattern_text,
+    cp.example_responses,
+    1 - (cp.pattern_embedding <=> query_embedding) AS similarity
+  FROM conversation_patterns cp
+  WHERE 
+    cp.mbti = target_mbti 
+    AND cp.disc = target_disc
+    AND cp.enneagram = target_enneagram
+    AND cp.relationship_type = target_relationship
+    AND 1 - (cp.pattern_embedding <=> query_embedding) > match_threshold
+  ORDER BY cp.pattern_embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+COMMENT ON FUNCTION search_similar_patterns IS '벡터 유사도 기반 대화 패턴 검색';
+
+-- ============================================================================
+
+-- 페르소나 사용 통계 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_persona_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE persona_profiles
+  SET 
+    usage_count = usage_count + 1,
+    last_used_at = NOW()
+  WHERE id = NEW.persona_profile_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_session_created
+  AFTER INSERT ON chat_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_persona_usage();
+
+COMMENT ON FUNCTION update_persona_usage IS '세션 생성 시 페르소나 사용 횟수 자동 증가';
+
+-- ============================================================================
+
+-- 세션 메시지 카운트 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_session_message_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE chat_sessions
+  SET 
+    message_count = message_count + 1,
+    total_tokens_used = total_tokens_used + COALESCE(NEW.tokens_used, 0)
+  WHERE id = NEW.session_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_message_created
+  AFTER INSERT ON chat_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_message_count();
+
+COMMENT ON FUNCTION update_session_message_count IS '메시지 생성 시 세션 통계 자동 업데이트';
+
+-- ============================================================================
+
+-- 프로필 업데이트 시간 자동 갱신 트리거
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_persona_profiles_updated_at
+  BEFORE UPDATE ON persona_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- 5. UTILITY VIEWS (선택사항)
+-- ============================================================================
+
+-- 활성 페르소나 통계 뷰
+CREATE OR REPLACE VIEW active_persona_stats AS
+SELECT 
+  p.id,
+  p.persona_name,
+  p.mbti,
+  p.disc,
+  p.enneagram,
+  p.usage_count,
+  p.last_used_at,
+  COUNT(DISTINCT cs.id) as session_count,
+  COALESCE(SUM(cs.message_count), 0) as total_messages
+FROM persona_profiles p
+LEFT JOIN chat_sessions cs ON p.id = cs.persona_profile_id
+WHERE p.is_active = true
+GROUP BY p.id;
+
+COMMENT ON VIEW active_persona_stats IS '활성 페르소나 사용 통계';
+
+-- ============================================================================
+-- 6. INITIAL DATA (선택사항)
+-- ============================================================================
+
+-- 샘플 대화 패턴 (개발/테스트용)
+INSERT INTO conversation_patterns (
+  mbti, disc, enneagram, relationship_type, 
+  pattern_category, pattern_text, example_responses
+) VALUES 
+(
+  'ISTJ', 'CS', '1w2', 'superior',
+  'feedback',
+  '부하 직원의 실수에 대해 건설적인 피드백 제공',
+  '["이번 실수를 통해 배운 점이 있나요?", "다음부터는 체크리스트를 활용해보세요.", "정확성을 높이기 위한 프로세스를 만들어봅시다."]'::jsonb
+),
+(
+  'ENTP', 'DI', '7w8', 'peer',
+  'greeting',
+  '동료와의 캐주얼한 인사 및 대화 시작',
+  '["오늘 뭐 재밌는 일 없어?", "새로운 아이디어 있으면 같이 얘기해보자!", "점심 먹으면서 브레인스토밍 어때?"]'::jsonb
+);
+
+-- ============================================================================
+-- 완료
+-- ============================================================================
+
+-- 설치 확인 쿼리
+SELECT 
+  'pgvector extension' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') 
+    THEN '✓ Installed' 
+    ELSE '✗ Not installed' 
+  END as status
+UNION ALL
+SELECT 
+  'Tables created' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'persona_profiles') 
+    THEN '✓ Success' 
+    ELSE '✗ Failed' 
+  END as status
+UNION ALL
+SELECT 
+  'RLS enabled' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'persona_profiles' AND rowsecurity = true) 
+    THEN '✓ Enabled' 
+    ELSE '✗ Disabled' 
+  END as status;)
+);
+
+COMMENT ON TABLE persona_profiles IS 'AI 페르소나 정의 - MBTI 필수, DiSC/애니어그램 선택';
+COMMENT ON COLUMN persona_profiles.mbti IS 'MBTI 유형 (필수)';
+COMMENT ON COLUMN persona_profiles.disc IS 'DiSC 스타일 (선택, 더 정교한 행동 패턴)';
+COMMENT ON COLUMN persona_profiles.enneagram IS '애니어그램 유형 (선택, 더 깊은 동기 이해)';
+COMMENT ON COLUMN persona_profiles.profile_embedding IS '페르소나 특성 벡터 임베딩 (유사도 검색용)';
+
+-- ============================================================================
+
+-- 대화 패턴 지식 베이스 (전역 공유)
+CREATE TABLE conversation_patterns (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  
+  -- 페르소나 타입 (3가지 조합)
+  mbti VARCHAR(4) NOT NULL,
+  disc VARCHAR(2) NOT NULL,
+  enneagram VARCHAR(10) NOT NULL,
+  
+  -- 관계 맥락
+  relationship_type VARCHAR(20) NOT NULL, -- 'superior', 'peer', 'subordinate'
+  conversation_topic VARCHAR(100),
+  emotional_context VARCHAR(50),
+  
+  -- 패턴 데이터
+  pattern_category VARCHAR(50) NOT NULL, -- 'greeting', 'feedback', 'conflict'...
+  pattern_text TEXT NOT NULL,
+  example_responses JSONB DEFAULT '[]',
+  
+  -- 벡터 임베딩 (패턴 검색용)
+  pattern_embedding vector(1536),
+  
+  -- 품질 지표
+  effectiveness_score FLOAT DEFAULT 0.7,
+  usage_frequency INTEGER DEFAULT 0,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_effectiveness CHECK (effectiveness_score BETWEEN 0 AND 1)
+);
+
+COMMENT ON TABLE conversation_patterns IS '대화 패턴 지식 베이스 - 심리 조합별 대화 스타일';
+COMMENT ON COLUMN conversation_patterns.pattern_embedding IS '패턴 벡터 임베딩 (유사도 검색용)';
+COMMENT ON COLUMN conversation_patterns.example_responses IS '예시 응답 배열';
+
+-- ============================================================================
+
+-- 대화 세션
+CREATE TABLE chat_sessions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  persona_profile_id UUID REFERENCES persona_profiles(id) ON DELETE SET NULL,
+  
+  -- 세션 설정
+  relationship_type VARCHAR(20) NOT NULL,
+  session_status VARCHAR(20) DEFAULT 'active',
+  
+  -- 세션 메타데이터
+  started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  ended_at TIMESTAMP,
+  message_count INTEGER DEFAULT 0,
+  total_tokens_used INTEGER DEFAULT 0,
+  session_metadata JSONB DEFAULT '{}',
+  
+  -- 제약조건
+  CONSTRAINT valid_session_relationship CHECK (relationship_type IN ('superior', 'peer', 'subordinate')),
+  CONSTRAINT valid_session_status CHECK (session_status IN ('active', 'ended', 'archived'))
+);
+
+COMMENT ON TABLE chat_sessions IS '대화 세션 - 페르소나와의 대화 단위';
+COMMENT ON COLUMN chat_sessions.relationship_type IS '대화 관계 (상급자/동료/하급자)';
+
+-- ============================================================================
+
+-- 대화 메시지
+CREATE TABLE chat_messages (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  session_id UUID REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  
+  role VARCHAR(20) NOT NULL, -- 'user' or 'assistant'
+  content TEXT NOT NULL,
+  
+  -- 메타데이터
+  tokens_used INTEGER,
+  response_time_ms INTEGER,
+  
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  
+  -- 제약조건
+  CONSTRAINT valid_role CHECK (role IN ('user', 'assistant', 'system'))
+);
+
+COMMENT ON TABLE chat_messages IS '대화 메시지 - 사용자와 AI의 대화 내용';
+
+-- ============================================================================
+-- 2. INDEXES
+-- ============================================================================
+
+-- Profiles 인덱스
+CREATE INDEX idx_profiles_email ON profiles(email);
+CREATE INDEX idx_profiles_created_at ON profiles(created_at);
+
+-- Persona Profiles 인덱스
+CREATE INDEX idx_persona_user ON persona_profiles(user_id);
+CREATE INDEX idx_persona_types ON persona_profiles(mbti, disc, enneagram);
+CREATE INDEX idx_persona_active ON persona_profiles(is_active) WHERE is_active = true;
+CREATE INDEX idx_persona_usage ON persona_profiles(usage_count DESC);
+
+-- pgvector 인덱스 (코사인 유사도)
+-- lists = 100: 10,000 rows까지 최적화
+CREATE INDEX idx_persona_embedding ON persona_profiles 
+  USING ivfflat (profile_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Conversation Patterns 인덱스
+CREATE INDEX idx_pattern_search ON conversation_patterns(mbti, disc, enneagram, relationship_type);
+CREATE INDEX idx_pattern_category ON conversation_patterns(pattern_category);
+
+-- pgvector 인덱스
+CREATE INDEX idx_pattern_embedding ON conversation_patterns 
+  USING ivfflat (pattern_embedding vector_cosine_ops) 
+  WITH (lists = 100);
+
+-- Chat Sessions 인덱스
+CREATE INDEX idx_session_user ON chat_sessions(user_id);
+CREATE INDEX idx_session_persona ON chat_sessions(persona_profile_id);
+CREATE INDEX idx_session_status ON chat_sessions(session_status);
+CREATE INDEX idx_session_started ON chat_sessions(started_at DESC);
+
+-- Chat Messages 인덱스
+CREATE INDEX idx_message_session ON chat_messages(session_id);
+CREATE INDEX idx_message_created ON chat_messages(created_at);
+
+-- ============================================================================
+-- 3. ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+
+-- 모든 테이블 RLS 활성화
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE persona_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Profiles 정책: 사용자는 자신의 프로필만 접근
+CREATE POLICY "Users can view own profile" 
+  ON profiles FOR SELECT 
+  USING (auth.uid() = id);
+
+CREATE POLICY "Users can update own profile" 
+  ON profiles FOR UPDATE 
+  USING (auth.uid() = id);
+
+-- Persona Profiles 정책: 사용자는 자신의 페르소나만 관리
+CREATE POLICY "Users can view own personas" 
+  ON persona_profiles FOR SELECT 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can create own personas" 
+  ON persona_profiles FOR INSERT 
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own personas" 
+  ON persona_profiles FOR UPDATE 
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own personas" 
+  ON persona_profiles FOR DELETE 
+  USING (auth.uid() = user_id);
+
+-- Conversation Patterns 정책: 모든 인증 사용자 읽기 가능
+CREATE POLICY "Authenticated users can read patterns" 
+  ON conversation_patterns FOR SELECT 
+  TO authenticated 
+  USING (true);
+
+-- Chat Sessions 정책: 사용자는 자신의 세션만 관리
+CREATE POLICY "Users can manage own sessions" 
+  ON chat_sessions FOR ALL 
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+-- Chat Messages 정책: 세션 소유자만 메시지 접근
+CREATE POLICY "Users can view own messages" 
+  ON chat_messages FOR SELECT 
+  USING (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+CREATE POLICY "Users can create own messages" 
+  ON chat_messages FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM chat_sessions 
+      WHERE chat_sessions.id = chat_messages.session_id 
+      AND chat_sessions.user_id = auth.uid()
+    )
+  );
+
+-- ============================================================================
+-- 4. DATABASE FUNCTIONS
+-- ============================================================================
+
+-- 유사 패턴 검색 함수 (벡터 유사도)
+CREATE OR REPLACE FUNCTION search_similar_patterns(
+  query_embedding vector(1536),
+  target_mbti VARCHAR(4),
+  target_disc VARCHAR(2),
+  target_enneagram VARCHAR(10),
+  target_relationship VARCHAR(20),
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 5
+)
+RETURNS TABLE (
+  id UUID,
+  pattern_text TEXT,
+  example_responses JSONB,
+  similarity FLOAT
+)
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    cp.id,
+    cp.pattern_text,
+    cp.example_responses,
+    1 - (cp.pattern_embedding <=> query_embedding) AS similarity
+  FROM conversation_patterns cp
+  WHERE 
+    cp.mbti = target_mbti 
+    AND cp.disc = target_disc
+    AND cp.enneagram = target_enneagram
+    AND cp.relationship_type = target_relationship
+    AND 1 - (cp.pattern_embedding <=> query_embedding) > match_threshold
+  ORDER BY cp.pattern_embedding <=> query_embedding
+  LIMIT match_count;
+END;
+$$;
+
+COMMENT ON FUNCTION search_similar_patterns IS '벡터 유사도 기반 대화 패턴 검색';
+
+-- ============================================================================
+
+-- 페르소나 사용 통계 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_persona_usage()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE persona_profiles
+  SET 
+    usage_count = usage_count + 1,
+    last_used_at = NOW()
+  WHERE id = NEW.persona_profile_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_session_created
+  AFTER INSERT ON chat_sessions
+  FOR EACH ROW
+  EXECUTE FUNCTION update_persona_usage();
+
+COMMENT ON FUNCTION update_persona_usage IS '세션 생성 시 페르소나 사용 횟수 자동 증가';
+
+-- ============================================================================
+
+-- 세션 메시지 카운트 자동 업데이트 트리거
+CREATE OR REPLACE FUNCTION update_session_message_count()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE chat_sessions
+  SET 
+    message_count = message_count + 1,
+    total_tokens_used = total_tokens_used + COALESCE(NEW.tokens_used, 0)
+  WHERE id = NEW.session_id;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER on_message_created
+  AFTER INSERT ON chat_messages
+  FOR EACH ROW
+  EXECUTE FUNCTION update_session_message_count();
+
+COMMENT ON FUNCTION update_session_message_count IS '메시지 생성 시 세션 통계 자동 업데이트';
+
+-- ============================================================================
+
+-- 프로필 업데이트 시간 자동 갱신 트리거
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER update_profiles_updated_at
+  BEFORE UPDATE ON profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_persona_profiles_updated_at
+  BEFORE UPDATE ON persona_profiles
+  FOR EACH ROW
+  EXECUTE FUNCTION update_updated_at_column();
+
+-- ============================================================================
+-- 5. UTILITY VIEWS (선택사항)
+-- ============================================================================
+
+-- 활성 페르소나 통계 뷰
+CREATE OR REPLACE VIEW active_persona_stats AS
+SELECT 
+  p.id,
+  p.persona_name,
+  p.mbti,
+  p.disc,
+  p.enneagram,
+  p.usage_count,
+  p.last_used_at,
+  COUNT(DISTINCT cs.id) as session_count,
+  COALESCE(SUM(cs.message_count), 0) as total_messages
+FROM persona_profiles p
+LEFT JOIN chat_sessions cs ON p.id = cs.persona_profile_id
+WHERE p.is_active = true
+GROUP BY p.id;
+
+COMMENT ON VIEW active_persona_stats IS '활성 페르소나 사용 통계';
+
+-- ============================================================================
+-- 6. INITIAL DATA (선택사항)
+-- ============================================================================
+
+-- 샘플 대화 패턴 (개발/테스트용)
+INSERT INTO conversation_patterns (
+  mbti, disc, enneagram, relationship_type, 
+  pattern_category, pattern_text, example_responses
+) VALUES 
+(
+  'ISTJ', 'CS', '1w2', 'superior',
+  'feedback',
+  '부하 직원의 실수에 대해 건설적인 피드백 제공',
+  '["이번 실수를 통해 배운 점이 있나요?", "다음부터는 체크리스트를 활용해보세요.", "정확성을 높이기 위한 프로세스를 만들어봅시다."]'::jsonb
+),
+(
+  'ENTP', 'DI', '7w8', 'peer',
+  'greeting',
+  '동료와의 캐주얼한 인사 및 대화 시작',
+  '["오늘 뭐 재밌는 일 없어?", "새로운 아이디어 있으면 같이 얘기해보자!", "점심 먹으면서 브레인스토밍 어때?"]'::jsonb
+);
+
+-- ============================================================================
+-- 완료
+-- ============================================================================
+
+-- 설치 확인 쿼리
+SELECT 
+  'pgvector extension' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'vector') 
+    THEN '✓ Installed' 
+    ELSE '✗ Not installed' 
+  END as status
+UNION ALL
+SELECT 
+  'Tables created' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'persona_profiles') 
+    THEN '✓ Success' 
+    ELSE '✗ Failed' 
+  END as status
+UNION ALL
+SELECT 
+  'RLS enabled' as check_name,
+  CASE WHEN EXISTS (SELECT 1 FROM pg_tables WHERE tablename = 'persona_profiles' AND rowsecurity = true) 
+    THEN '✓ Enabled' 
+    ELSE '✗ Disabled' 
+  END as status;
