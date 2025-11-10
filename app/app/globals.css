@@ -1,48 +1,246 @@
 @import "tailwindcss";
 
-@theme {
-  --color-background: 0 0% 100%;
-  --color-foreground: 0 0% 3.9%;
-  --color-card: 0 0% 100%;
-  --color-card-foreground: 0 0% 3.9%;
-  --color-popover: 0 0% 100%;
-  --color-popover-foreground: 0 0% 3.9%;
-  --color-primary: 0 0% 9%;
-  --color-primary-foreground: 0 0% 98%;
-  --color-secondary: 0 0% 96.1%;
-  --color-secondary-foreground: 0 0% 9%;
-  --color-muted: 0 0% 96.1%;
-  --color-muted-foreground: 0 0% 45.1%;
-  --color-accent: 0 0% 96.1%;
-  --color-accent-foreground: 0 0% 9%;
-  --color-destructive: 0 84.2% 60.2%;
-  --color-destructive-foreground: 0 0% 98%;
-  --color-border: 0 0% 89.8%;
-  --color-input: 0 0% 89.8%;
-  --color-ring: 0 0% 3.9%;
-  --radius: 0.5rem;
+/* Personality Persona - 다크 모드 디자인 시스템 */
+:root {
+  /* 배경: 깊은 다크 톤 */
+  --background: 270 20% 8%;
+  --foreground: 0 0% 98%;
+
+  /* 카드: 어두운 보라 톤 */
+  --card: 270 15% 12%;
+  --card-foreground: 0 0% 98%;
+
+  /* 팝오버 */
+  --popover: 270 15% 12%;
+  --popover-foreground: 0 0% 98%;
+
+  /* Primary: 밝은 보라 */
+  --primary: 270 80% 75%;
+  --primary-foreground: 270 20% 10%;
+
+  /* Secondary */
+  --secondary: 270 20% 20%;
+  --secondary-foreground: 270 80% 90%;
+
+  /* Muted */
+  --muted: 240 10% 18%;
+  --muted-foreground: 240 10% 75%;
+
+  /* Accent: 밝은 청록색 */
+  --accent: 180 60% 55%;
+  --accent-foreground: 270 20% 10%;
+
+  /* Destructive */
+  --destructive: 0 70% 55%;
+  --destructive-foreground: 0 0% 100%;
+
+  /* Border & Input */
+  --border: 270 15% 25%;
+  --input: 270 15% 25%;
+  --ring: 270 70% 65%;
+
+  /* Radius: 부드러운 곡선 */
+  --radius: 0.75rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  @theme {
-    --color-background: 0 0% 3.9%;
-    --color-foreground: 0 0% 98%;
-    --color-card: 0 0% 3.9%;
-    --color-card-foreground: 0 0% 98%;
-    --color-popover: 0 0% 3.9%;
-    --color-popover-foreground: 0 0% 98%;
-    --color-primary: 0 0% 98%;
-    --color-primary-foreground: 0 0% 9%;
-    --color-secondary: 0 0% 14.9%;
-    --color-secondary-foreground: 0 0% 98%;
-    --color-muted: 0 0% 14.9%;
-    --color-muted-foreground: 0 0% 63.9%;
-    --color-accent: 0 0% 14.9%;
-    --color-accent-foreground: 0 0% 98%;
-    --color-destructive: 0 62.8% 30.6%;
-    --color-destructive-foreground: 0 0% 98%;
-    --color-border: 0 0% 14.9%;
-    --color-input: 0 0% 14.9%;
-    --color-ring: 0 0% 83.1%;
+
+/* Custom Styles for Personality Persona */
+@layer base {
+  * {
+    border-color: hsl(var(--border));
+  }
+
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+/* 부드러운 애니메이션 */
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.4s ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* 그라데이션 배경 */
+  .gradient-bg {
+    background: linear-gradient(
+      135deg,
+      hsl(270, 80%, 70%) 0%,
+      hsl(180, 70%, 60%) 100%
+    );
+  }
+
+  .gradient-text {
+    background: linear-gradient(
+      135deg,
+      hsl(270, 80%, 75%) 0%,
+      hsl(180, 70%, 65%) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* 카드 호버 효과 */
+  .card-hover {
+    transition: all 0.3s ease;
+  }
+
+  .card-hover:hover {
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    transform: translateY(-0.25rem);
+  }
+
+  /* 글래스모피즘 효과 */
+  .glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .glass {
+      background: rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  /* 패턴 배경 */
+  .pattern-dots {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      hsl(270, 60%, 55%, 0.15) 1px,
+      transparent 0
+    );
+    background-size: 40px 40px;
+  }
+
+  .pattern-grid {
+    background-image: linear-gradient(
+        hsl(270, 60%, 55%, 0.05) 1px,
+        transparent 1px
+      ),
+      linear-gradient(90deg, hsl(270, 60%, 55%, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* 그라데이션 오버레이 배경 */
+  .gradient-overlay {
+    position: relative;
+  }
+
+  .gradient-overlay::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(
+      ellipse at top left,
+      hsl(270, 60%, 55%, 0.1) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      ellipse at bottom right,
+      hsl(180, 60%, 50%, 0.1) 0%,
+      transparent 50%
+    );
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* Color Bends 스타일 배경 - Dark Mode */
+  .color-bends-bg {
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #0a0414 0%, #0d1420 100%);
+  }
+
+  .color-bends-bg::before,
+  .color-bends-bg::after {
+    content: "";
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(100px);
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .color-bends-bg::before {
+    width: 700px;
+    height: 700px;
+    top: -350px;
+    left: -250px;
+    background: radial-gradient(circle, #a78bfa 0%, #7c3aed 35%, transparent 65%);
+    animation: float1 20s ease-in-out infinite;
+  }
+
+  .color-bends-bg::after {
+    width: 600px;
+    height: 600px;
+    bottom: -250px;
+    right: -200px;
+    background: radial-gradient(circle, #22d3ee 0%, #0891b2 35%, transparent 65%);
+    animation: float2 18s ease-in-out infinite reverse;
+  }
+
+  @keyframes float1 {
+    0%, 100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(100px, 50px);
+    }
+  }
+
+  @keyframes float2 {
+    0%, 100% {
+      transform: translate(0, 0);
+    }
+    50% {
+      transform: translate(-80px, -60px);
+    }
   }
 }
