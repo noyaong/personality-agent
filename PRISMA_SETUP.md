@@ -46,7 +46,7 @@ Supabase SQL Editor 또는 MCP를 통해 실행:
 
 ```sql
 -- Prisma 전용 사용자 생성
-CREATE USER prisma WITH PASSWORD 'm16a1192176!' BYPASSRLS CREATEDB;
+CREATE USER prisma WITH PASSWORD 'YOUR_SECURE_PASSWORD' BYPASSRLS CREATEDB;
 
 -- 스키마 사용 권한
 GRANT USAGE ON SCHEMA public TO prisma;
@@ -86,10 +86,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 
 # Prisma Database URL
 # Transaction Pooler (IPv4) - for app queries with prisma user (bypassrls)
-DATABASE_URL="postgresql://prisma.tscptdhwdpedngkpmwlm:m16a1192176%21@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
+DATABASE_URL="postgresql://prisma.PROJECT_REF:YOUR_PASSWORD@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres?pgbouncer=true"
 
 # Session Pooler (IPv4) - for migrations
-DIRECT_URL="postgresql://prisma.tscptdhwdpedngkpmwlm:m16a1192176%21@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
+DIRECT_URL="postgresql://prisma.PROJECT_REF:YOUR_PASSWORD@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres"
 
 # OpenAI API (for AI chat functionality)
 # OPENAI_API_KEY=your_openai_api_key_here
