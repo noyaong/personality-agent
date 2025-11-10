@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Input } from '@/components/ui/input'
 
 interface Persona {
   id: string
@@ -29,6 +30,7 @@ export default function PersonasPage() {
   const [personas, setPersonas] = useState<Persona[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
     fetchPersonas()
@@ -52,9 +54,24 @@ export default function PersonasPage() {
     }
   }
 
-  const myPersonas = personas.filter((p) => p.creatorId === user?.id)
-  const publicPersonas = personas.filter((p) => p.visibility === 'public' && p.creatorId !== user?.id)
-  const officialPersonas = personas.filter((p) => p.isOfficial)
+  // 검색 필터 함수
+  const filterPersonas = (personaList: Persona[]) => {
+    if (!searchQuery.trim()) return personaList
+
+    const query = searchQuery.toLowerCase()
+    return personaList.filter(
+      (p) =>
+        p.personaName.toLowerCase().includes(query) ||
+        p.personaDescription?.toLowerCase().includes(query) ||
+        p.mbti.toLowerCase().includes(query) ||
+        p.disc?.toLowerCase().includes(query) ||
+        p.enneagram?.toLowerCase().includes(query)
+    )
+  }
+
+  const myPersonas = filterPersonas(personas.filter((p) => p.creatorId === user?.id))
+  const publicPersonas = filterPersonas(personas.filter((p) => p.visibility === 'public' && p.creatorId !== user?.id))
+  const officialPersonas = filterPersonas(personas.filter((p) => p.isOfficial))
 
   if (loading) {
     return (
@@ -93,6 +110,22 @@ export default function PersonasPage() {
             {error}
           </div>
         )}
+
+        {/* 검색 바 */}
+        <div className="mb-6">
+          <Input
+            type="text"
+            placeholder="페르소나 이름, 설명, MBTI, DiSC, Enneagram으로 검색..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="max-w-2xl"
+          />
+          {searchQuery && (
+            <p className="text-sm text-muted-foreground mt-2">
+              &quot;{searchQuery}&quot; 검색 결과: {myPersonas.length + publicPersonas.length + officialPersonas.length}개
+            </p>
+          )}
+        </div>
 
         <Tabs defaultValue="my" className="space-y-6">
           <TabsList>
@@ -181,8 +214,20 @@ export default function PersonasPage() {
 function PersonaCard({ persona }: { persona: Persona }) {
   const router = useRouter()
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // 버튼 클릭이 아닌 경우에만 상세 페이지로 이동
+    if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+      router.push(`/personas/${persona.id}`)
+    }
+  }
+
+  const handleChatClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    router.push(`/chat?persona=${persona.id}`)
+  }
+
   return (
-    <Card className="card-hover border-2 group cursor-pointer" onClick={() => router.push(`/chat?persona=${persona.id}`)}>
+    <Card className="card-hover border-2 group cursor-pointer" onClick={handleCardClick}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
           <CardTitle className="text-lg">{persona.personaName}</CardTitle>
@@ -214,10 +259,14 @@ function PersonaCard({ persona }: { persona: Persona }) {
           </Badge>
         </div>
 
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-sm text-muted-foreground">대화 시작</span>
-          <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
-        </div>
+        <Button
+          variant="outline"
+          className="w-full"
+          size="sm"
+          onClick={handleChatClick}
+        >
+          💬 대화 시작
+        </Button>
       </CardContent>
     </Card>
   )

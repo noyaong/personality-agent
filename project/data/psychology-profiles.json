@@ -1,0 +1,803 @@
+{
+  "mbti": {
+    "ISTJ": {
+      "name": "논리적 관리자",
+      "traits": [
+        "책임감",
+        "체계적",
+        "신뢰성",
+        "실용적",
+        "보수적"
+      ],
+      "communication": "structured",
+      "decision": "logical",
+      "information_processing": "concrete_facts",
+      "stress_response": "withdraw_and_organize",
+      "description": "전통과 질서를 중시하며, 계획에 따라 체계적으로 일을 처리합니다."
+    },
+    "ISFJ": {
+      "name": "용감한 수호자",
+      "traits": [
+        "헌신적",
+        "세심함",
+        "책임감",
+        "신중함",
+        "배려심"
+      ],
+      "communication": "supportive",
+      "decision": "value_based",
+      "information_processing": "concrete_details",
+      "stress_response": "internalize_and_worry",
+      "description": "타인을 돕고 보살피는 것에 헌신적이며, 세심한 관찰력을 가집니다."
+    },
+    "INFJ": {
+      "name": "예언자",
+      "traits": [
+        "통찰력",
+        "이상주의",
+        "헌신적",
+        "독립적",
+        "창의적"
+      ],
+      "communication": "insightful",
+      "decision": "value_based",
+      "information_processing": "abstract_patterns",
+      "stress_response": "withdraw_deeply",
+      "description": "깊은 통찰력으로 타인의 성장을 돕는 이상주의자입니다."
+    },
+    "INTJ": {
+      "name": "건축가",
+      "traits": [
+        "전략적",
+        "독립적",
+        "분석적",
+        "자신감",
+        "혁신적"
+      ],
+      "communication": "conceptual",
+      "decision": "logical",
+      "information_processing": "abstract_systems",
+      "stress_response": "isolate_and_analyze",
+      "description": "전략적 사고로 장기적인 목표를 체계적으로 실현합니다."
+    },
+    "ISTP": {
+      "name": "만능 재주꾼",
+      "traits": [
+        "실용적",
+        "논리적",
+        "유연함",
+        "독립적",
+        "적응력"
+      ],
+      "communication": "minimal",
+      "decision": "logical",
+      "information_processing": "concrete_action",
+      "stress_response": "act_impulsively",
+      "description": "즉흥적이고 실용적인 해결책을 찾는 문제 해결사입니다."
+    },
+    "ISFP": {
+      "name": "모험가",
+      "traits": [
+        "온화함",
+        "예술적",
+        "유연함",
+        "독립적",
+        "감각적"
+      ],
+      "communication": "gentle",
+      "decision": "value_based",
+      "information_processing": "sensory_experience",
+      "stress_response": "withdraw_quietly",
+      "description": "조용히 자신만의 방식으로 예술적 감각을 표현합니다."
+    },
+    "INFP": {
+      "name": "중재자",
+      "traits": [
+        "이상주의",
+        "공감적",
+        "창의적",
+        "내향적",
+        "가치지향"
+      ],
+      "communication": "empathetic",
+      "decision": "value_based",
+      "information_processing": "inner_values",
+      "stress_response": "retreat_emotionally",
+      "description": "깊은 가치관을 바탕으로 세상을 더 나은 곳으로 만들고자 합니다."
+    },
+    "INTP": {
+      "name": "논리적 사색가",
+      "traits": [
+        "분석적",
+        "논리적",
+        "독립적",
+        "호기심",
+        "객관적"
+      ],
+      "communication": "analytical",
+      "decision": "logical",
+      "information_processing": "theoretical_frameworks",
+      "stress_response": "overthink_and_doubt",
+      "description": "복잡한 문제를 논리적으로 분석하고 이론을 만듭니다."
+    },
+    "ESTP": {
+      "name": "모험을 즐기는 사업가",
+      "traits": [
+        "활동적",
+        "현실적",
+        "적응력",
+        "직접적",
+        "사교적"
+      ],
+      "communication": "direct",
+      "decision": "pragmatic",
+      "information_processing": "immediate_action",
+      "stress_response": "seek_stimulation",
+      "description": "즉각적인 행동으로 위기를 기회로 바꾸는 활동가입니다."
+    },
+    "ESFP": {
+      "name": "자유로운 영혼의 연예인",
+      "traits": [
+        "활발함",
+        "우호적",
+        "즉흥적",
+        "낙천적",
+        "사교적"
+      ],
+      "communication": "entertaining",
+      "decision": "spontaneous",
+      "information_processing": "sensory_engagement",
+      "stress_response": "distract_with_fun",
+      "description": "현재를 즐기며 타인에게 즐거움을 전파합니다."
+    },
+    "ENFP": {
+      "name": "재기발랄한 활동가",
+      "traits": [
+        "열정적",
+        "창의적",
+        "자유로움",
+        "낙천적",
+        "사교적"
+      ],
+      "communication": "enthusiastic",
+      "decision": "value_based",
+      "information_processing": "possibilities",
+      "stress_response": "scatter_energy",
+      "description": "무한한 가능성을 보며 열정적으로 새로운 것을 시도합니다."
+    },
+    "ENTP": {
+      "name": "논쟁을 즐기는 변론가",
+      "traits": [
+        "창의적",
+        "논리적",
+        "도전적",
+        "독립적",
+        "혁신적"
+      ],
+      "communication": "debating",
+      "decision": "logical",
+      "information_processing": "conceptual_connections",
+      "stress_response": "argue_and_challenge",
+      "description": "아이디어와 논리로 기존 체제에 도전하는 혁신가입니다."
+    },
+    "ESTJ": {
+      "name": "엄격한 관리자",
+      "traits": [
+        "조직적",
+        "실용적",
+        "직접적",
+        "책임감",
+        "결단력"
+      ],
+      "communication": "direct_and_clear",
+      "decision": "efficient",
+      "information_processing": "facts_and_order",
+      "stress_response": "control_more",
+      "description": "효율과 질서를 중시하며 강력한 리더십을 발휘합니다."
+    },
+    "ESFJ": {
+      "name": "사교적인 외교관",
+      "traits": [
+        "협조적",
+        "사교적",
+        "책임감",
+        "배려심",
+        "전통지향"
+      ],
+      "communication": "warm_and_supportive",
+      "decision": "group_harmony",
+      "information_processing": "social_norms",
+      "stress_response": "please_others_more",
+      "description": "조화로운 관계를 만들고 타인을 돕는 것을 중시합니다."
+    },
+    "ENFJ": {
+      "name": "정의로운 사회운동가",
+      "traits": [
+        "카리스마",
+        "공감적",
+        "조직력",
+        "이상주의",
+        "열정적"
+      ],
+      "communication": "inspiring",
+      "decision": "value_based",
+      "information_processing": "people_potential",
+      "stress_response": "overextend_helping",
+      "description": "타인의 성장을 이끌며 사회적 변화를 만드는 리더입니다."
+    },
+    "ENTJ": {
+      "name": "대담한 통솔자",
+      "traits": [
+        "전략적",
+        "결단력",
+        "논리적",
+        "자신감",
+        "리더십"
+      ],
+      "communication": "commanding",
+      "decision": "efficient_and_logical",
+      "information_processing": "long_term_strategy",
+      "stress_response": "push_harder",
+      "description": "비전과 전략으로 조직을 이끄는 타고난 리더입니다."
+    }
+  },
+  "disc": {
+    "D": {
+      "name": "주도형 (Dominance)",
+      "traits": [
+        "직접적",
+        "결과지향",
+        "결단력",
+        "도전적",
+        "자신감"
+      ],
+      "pace": "fast",
+      "priority": "results",
+      "fear": "losing_control",
+      "behavior": "주도권을 잡고 빠르게 의사결정하며 결과를 추구합니다."
+    },
+    "I": {
+      "name": "사교형 (Influence)",
+      "traits": [
+        "열정적",
+        "낙천적",
+        "협력적",
+        "사교적",
+        "표현적"
+      ],
+      "pace": "fast",
+      "priority": "relationships",
+      "fear": "rejection",
+      "behavior": "사람들과 어울리며 긍정적인 분위기를 만듭니다."
+    },
+    "S": {
+      "name": "안정형 (Steadiness)",
+      "traits": [
+        "인내심",
+        "협조적",
+        "경청",
+        "충성심",
+        "안정추구"
+      ],
+      "pace": "slow",
+      "priority": "stability",
+      "fear": "change",
+      "behavior": "조용히 타인을 지지하며 안정적인 환경을 선호합니다."
+    },
+    "C": {
+      "name": "신중형 (Conscientiousness)",
+      "traits": [
+        "정확성",
+        "분석적",
+        "체계적",
+        "신중함",
+        "품질지향"
+      ],
+      "pace": "slow",
+      "priority": "quality",
+      "fear": "mistakes",
+      "behavior": "정확한 정보를 바탕으로 신중하게 판단합니다."
+    },
+    "DI": {
+      "name": "주도적 사교형",
+      "combination": [
+        "D",
+        "I"
+      ],
+      "traits": [
+        "카리스마",
+        "설득력",
+        "낙천적",
+        "추진력"
+      ],
+      "behavior": "사람들을 이끌며 긍정적 에너지로 목표를 달성합니다.",
+      "pace": "fast",
+      "priority": "results_through_people",
+      "fear": "losing_influence"
+    },
+    "DC": {
+      "name": "주도적 신중형",
+      "combination": [
+        "D",
+        "C"
+      ],
+      "traits": [
+        "전략적",
+        "분석적",
+        "결단력",
+        "완벽주의"
+      ],
+      "behavior": "데이터를 분석하여 정확하고 빠른 결정을 내립니다.",
+      "pace": "moderate",
+      "priority": "accurate_results",
+      "fear": "failure"
+    },
+    "IS": {
+      "name": "사교적 안정형",
+      "combination": [
+        "I",
+        "S"
+      ],
+      "traits": [
+        "우호적",
+        "인내심",
+        "팀워크",
+        "감정이입"
+      ],
+      "behavior": "사람들과 조화롭게 일하며 안정적인 관계를 만듭니다.",
+      "pace": "moderate",
+      "priority": "harmonious_relationships",
+      "fear": "conflict"
+    },
+    "SC": {
+      "name": "안정적 신중형",
+      "combination": [
+        "S",
+        "C"
+      ],
+      "traits": [
+        "체계적",
+        "신뢰성",
+        "침착함",
+        "정확성"
+      ],
+      "behavior": "꼼꼼하고 안정적으로 업무를 수행합니다.",
+      "pace": "slow",
+      "priority": "quality_and_stability",
+      "fear": "mistakes_and_change"
+    },
+    "CS": {
+      "name": "신중한 안정형",
+      "combination": [
+        "C",
+        "S"
+      ],
+      "traits": [
+        "세심함",
+        "분석적",
+        "협조적",
+        "신중함"
+      ],
+      "behavior": "정확성과 안정성을 동시에 추구합니다.",
+      "pace": "slow",
+      "priority": "accuracy_and_stability",
+      "fear": "mistakes_and_conflict"
+    },
+    "ID": {
+      "name": "사교적 주도형",
+      "combination": [
+        "I",
+        "D"
+      ],
+      "traits": [
+        "열정적",
+        "영향력",
+        "추진력",
+        "낙천적",
+        "리더십"
+      ],
+      "pace": "fast",
+      "priority": "relationships_and_results",
+      "fear": "being_ignored",
+      "behavior": "열정과 영향력으로 사람들을 움직여 목표를 달성합니다."
+    },
+    "SI": {
+      "name": "안정적 사교형",
+      "combination": [
+        "S",
+        "I"
+      ],
+      "traits": [
+        "친절함",
+        "협조적",
+        "인내심",
+        "우호적",
+        "지지적"
+      ],
+      "pace": "moderate",
+      "priority": "supportive_relationships",
+      "fear": "rejection",
+      "behavior": "따뜻하게 타인을 지지하며 안정적인 환경을 만듭니다."
+    },
+    "CD": {
+      "name": "신중한 주도형",
+      "combination": [
+        "C",
+        "D"
+      ],
+      "traits": [
+        "전략적",
+        "분석적",
+        "결단력",
+        "완벽주의",
+        "독립적"
+      ],
+      "pace": "moderate",
+      "priority": "quality_results",
+      "fear": "incompetence",
+      "behavior": "데이터를 꼼꼼히 분석하여 정확하고 효율적인 결정을 내립니다."
+    },
+    "CI": {
+      "name": "신중형 - 사교적 경향",
+      "combination": [
+        "C",
+        "I"
+      ],
+      "traits": [
+        "분석적",
+        "사교적",
+        "체계적",
+        "설득력",
+        "우호적"
+      ],
+      "pace": "moderate",
+      "priority": "quality_with_relationships",
+      "fear": "mistakes_and_isolation",
+      "behavior": "정확한 분석을 바탕으로 사람들과 협력하며 설득합니다."
+    },
+    "DS": {
+      "name": "주도형 - 안정적 경향",
+      "combination": [
+        "D",
+        "S"
+      ],
+      "traits": [
+        "결단력",
+        "인내심",
+        "협조적",
+        "목표지향",
+        "신중함"
+      ],
+      "pace": "moderate",
+      "priority": "steady_results",
+      "fear": "sudden_change",
+      "behavior": "안정적으로 목표를 달성하며 조용히 리더십을 발휘합니다."
+    },
+    "IC": {
+      "name": "사교형 - 신중한 경향",
+      "combination": [
+        "I",
+        "C"
+      ],
+      "traits": [
+        "사교적",
+        "분석적",
+        "설득력",
+        "체계적",
+        "논리적"
+      ],
+      "pace": "moderate",
+      "priority": "accurate_relationships",
+      "fear": "rejection_and_mistakes",
+      "behavior": "정확한 정보를 바탕으로 사람들과 관계를 맺으며 설득합니다."
+    },
+    "SD": {
+      "name": "안정형 - 주도적 경향",
+      "combination": [
+        "S",
+        "D"
+      ],
+      "traits": [
+        "인내심",
+        "결단력",
+        "침착함",
+        "목표지향",
+        "협조적"
+      ],
+      "pace": "moderate",
+      "priority": "stable_progress",
+      "fear": "chaos",
+      "behavior": "차분하지만 결단력 있게 목표를 향해 나아갑니다."
+    }
+  },
+  "enneagram": {
+    "1": {
+      "name": "완벽주의자 (The Reformer)",
+      "core_motivation": "완벽하고 올바르게 되기",
+      "core_fear": "부패되거나 결함이 있는 것",
+      "traits": [
+        "원칙적",
+        "이상주의",
+        "자기통제",
+        "비판적",
+        "개선지향"
+      ],
+      "wings": {
+        "1w9": {
+          "name": "평화로운 완벽주의자",
+          "traits": [
+            "침착함",
+            "객관적",
+            "이상주의"
+          ],
+          "behavior": "원칙을 지키되 평화로운 방식으로 개선을 추구합니다."
+        },
+        "1w2": {
+          "name": "옹호하는 완벽주의자",
+          "traits": [
+            "따뜻함",
+            "봉사적",
+            "규칙지향"
+          ],
+          "behavior": "타인을 돕되 올바른 방식을 추구합니다."
+        }
+      }
+    },
+    "2": {
+      "name": "조력자 (The Helper)",
+      "core_motivation": "사랑받고 필요한 존재가 되기",
+      "core_fear": "사랑받지 못하고 불필요한 존재가 되는 것",
+      "traits": [
+        "배려심",
+        "관대함",
+        "관계지향",
+        "감정적",
+        "타인중심"
+      ],
+      "wings": {
+        "2w1": {
+          "name": "봉사하는 조력자",
+          "traits": [
+            "원칙적",
+            "객관적",
+            "봉사정신"
+          ],
+          "behavior": "타인을 돕되 올바른 방식을 중시합니다."
+        },
+        "2w3": {
+          "name": "호의적인 조력자",
+          "traits": [
+            "사교적",
+            "야심적",
+            "매력적"
+          ],
+          "behavior": "적극적으로 관계를 만들며 인정받고자 합니다."
+        }
+      }
+    },
+    "3": {
+      "name": "성취자 (The Achiever)",
+      "core_motivation": "성공하고 가치있는 존재가 되기",
+      "core_fear": "실패하고 무가치해지는 것",
+      "traits": [
+        "야심적",
+        "효율적",
+        "경쟁적",
+        "이미지지향",
+        "적응적"
+      ],
+      "wings": {
+        "3w2": {
+          "name": "매력적인 성취자",
+          "traits": [
+            "사교적",
+            "따뜻함",
+            "설득력"
+          ],
+          "behavior": "사람들과의 관계를 통해 성공을 추구합니다."
+        },
+        "3w4": {
+          "name": "전문가적 성취자",
+          "traits": [
+            "진정성",
+            "독특함",
+            "집중력"
+          ],
+          "behavior": "자신만의 독특한 방식으로 성공을 추구합니다."
+        }
+      }
+    },
+    "4": {
+      "name": "개인주의자 (The Individualist)",
+      "core_motivation": "독특하고 진정한 자아를 찾기",
+      "core_fear": "정체성이 없고 평범한 것",
+      "traits": [
+        "창의적",
+        "감성적",
+        "독특함",
+        "자기표현",
+        "내적지향"
+      ],
+      "wings": {
+        "4w3": {
+          "name": "귀족적 개인주의자",
+          "traits": [
+            "야심적",
+            "표현적",
+            "경쟁적"
+          ],
+          "behavior": "독특함을 인정받고 싶어하며 성취를 추구합니다."
+        },
+        "4w5": {
+          "name": "보헤미안 개인주의자",
+          "traits": [
+            "내향적",
+            "관찰적",
+            "분석적"
+          ],
+          "behavior": "고립 속에서 자신만의 세계를 탐구합니다."
+        }
+      }
+    },
+    "5": {
+      "name": "탐구자 (The Investigator)",
+      "core_motivation": "유능하고 지식을 갖추기",
+      "core_fear": "무능하고 무지한 것",
+      "traits": [
+        "분석적",
+        "관찰적",
+        "독립적",
+        "지적호기심",
+        "비사회적"
+      ],
+      "wings": {
+        "5w4": {
+          "name": "도상학자 (Iconoclast)",
+          "traits": [
+            "창의적",
+            "독특함",
+            "비판적"
+          ],
+          "behavior": "독창적 사고로 기존 체제에 도전합니다."
+        },
+        "5w6": {
+          "name": "문제 해결자",
+          "traits": [
+            "체계적",
+            "충성심",
+            "신중함"
+          ],
+          "behavior": "논리적으로 문제를 분석하고 해결합니다."
+        }
+      }
+    },
+    "6": {
+      "name": "충성가 (The Loyalist)",
+      "core_motivation": "안전하고 지원받기",
+      "core_fear": "지원 없이 홀로 남겨지는 것",
+      "traits": [
+        "책임감",
+        "신중함",
+        "충성심",
+        "의심",
+        "준비성"
+      ],
+      "wings": {
+        "6w5": {
+          "name": "방어자",
+          "traits": [
+            "분석적",
+            "독립적",
+            "신중함"
+          ],
+          "behavior": "체계적으로 위험을 분석하고 대비합니다."
+        },
+        "6w7": {
+          "name": "친구",
+          "traits": [
+            "사교적",
+            "낙천적",
+            "충성심"
+          ],
+          "behavior": "관계를 통해 안정감을 찾으며 밝은 면을 봅니다."
+        }
+      }
+    },
+    "7": {
+      "name": "열정가 (The Enthusiast)",
+      "core_motivation": "행복하고 만족스럽게 되기",
+      "core_fear": "고통받고 제한되는 것",
+      "traits": [
+        "낙천적",
+        "모험적",
+        "다재다능",
+        "충동적",
+        "긍정적"
+      ],
+      "wings": {
+        "7w6": {
+          "name": "엔터테이너",
+          "traits": [
+            "사교적",
+            "충성심",
+            "활발함"
+          ],
+          "behavior": "사람들과 즐거움을 나누며 관계를 중시합니다."
+        },
+        "7w8": {
+          "name": "현실주의자",
+          "traits": [
+            "자신감",
+            "직접적",
+            "실용적"
+          ],
+          "behavior": "대담하게 새로운 경험을 추구합니다."
+        }
+      }
+    },
+    "8": {
+      "name": "도전자 (The Challenger)",
+      "core_motivation": "강하고 자율적이기",
+      "core_fear": "약하고 통제당하는 것",
+      "traits": [
+        "자신감",
+        "직접적",
+        "보호적",
+        "정의감",
+        "지배적"
+      ],
+      "wings": {
+        "8w7": {
+          "name": "독립적 도전자",
+          "traits": [
+            "활발함",
+            "낙천적",
+            "모험적"
+          ],
+          "behavior": "대담하게 자신의 길을 개척합니다."
+        },
+        "8w9": {
+          "name": "곰 같은 도전자",
+          "traits": [
+            "침착함",
+            "수용적",
+            "인내심"
+          ],
+          "behavior": "강하되 평화로운 방식으로 보호합니다."
+        }
+      }
+    },
+    "9": {
+      "name": "평화주의자 (The Peacemaker)",
+      "core_motivation": "평화롭고 조화롭게 되기",
+      "core_fear": "갈등과 분리되는 것",
+      "traits": [
+        "수용적",
+        "평화로움",
+        "순응적",
+        "회피적",
+        "조화추구"
+      ],
+      "wings": {
+        "9w8": {
+          "name": "심판관",
+          "traits": [
+            "자신감",
+            "직접적",
+            "보호적"
+          ],
+          "behavior": "평화를 위해 때로는 강하게 나섭니다."
+        },
+        "9w1": {
+          "name": "몽상가",
+          "traits": [
+            "이상주의",
+            "원칙적",
+            "침착함"
+          ],
+          "behavior": "이상적인 조화를 추구하며 원칙을 지킵니다."
+        }
+      }
+    }
+  }
+}

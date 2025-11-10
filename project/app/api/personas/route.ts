@@ -48,6 +48,9 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { name, description, mbti, disc, enneagram, enneagramWing, visibility } = body
 
+    // 디버깅 로그
+    console.log('📝 Creating persona with:', { name, enneagram, enneagramWing })
+
     // 필수 필드 검증
     if (!name || !mbti || !disc || !enneagram) {
       return NextResponse.json(
@@ -55,6 +58,10 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
     }
+
+    // Enneagram + Wing 결합 (예: "5" + "w6" = "5w6")
+    const enneagramFull = enneagramWing ? `${enneagram}w${enneagramWing}` : enneagram
+    console.log('✅ Final enneagram value:', enneagramFull)
 
     // Prisma로 페르소나 생성
     const persona = await prisma.personaProfile.create({
@@ -64,7 +71,7 @@ export async function POST(request: NextRequest) {
         personaDescription: description || null,
         mbti: mbti,
         disc: disc,
-        enneagram: enneagram,
+        enneagram: enneagramFull,
         visibility: visibility || 'private',
         isOfficial: false,
         creatorUsageCount: 0,

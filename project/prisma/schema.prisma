@@ -70,7 +70,9 @@ model PersonaProfile {
   publicUsageCount  Int @default(0) @map("public_usage_count")
 
   // Vector embedding (handled by Supabase, not Prisma)
-  profileEmbedding String? @map("profile_embedding")
+  // ⚠️ @ignore: pgvector 타입은 Prisma가 지원하지 않으므로 무시
+  // 벡터 검색이 필요한 경우 Supabase Client를 사용하세요
+  // profileEmbedding Unsupported("vector(1536)")? @ignore @map("profile_embedding")
 
   // Relations
   usersWithThisAvatar Profile[]     @relation("UserAvatarPersona")
@@ -142,7 +144,8 @@ model ConversationPattern {
   createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 
   // Vector embedding (handled by Supabase, not Prisma)
-  patternEmbedding String? @map("pattern_embedding")
+  // ⚠️ @ignore: pgvector 타입은 Prisma가 지원하지 않으므로 무시
+  // patternEmbedding Unsupported("vector(1536)")? @ignore @map("pattern_embedding")
 
   @@map("conversation_patterns")
 }

@@ -82,6 +82,12 @@ export default function NewPersonaPage() {
     setError(null)
 
     try {
+      // 디버깅 로그
+      console.log('🚀 Sending persona data:', {
+        enneagram: formData.enneagram,
+        enneagramWing: formData.enneagramWing,
+      })
+
       const response = await fetch('/api/personas', {
         method: 'POST',
         headers: {
@@ -163,7 +169,7 @@ export default function NewPersonaPage() {
                   <Input
                     id="name"
                     placeholder="예: 따뜻한 친구, 엄격한 멘토"
-                    value={formData.name}
+                    defaultValue={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
                 </div>
@@ -174,7 +180,7 @@ export default function NewPersonaPage() {
                     id="description"
                     placeholder="이 페르소나의 특징을 자유롭게 설명해주세요..."
                     rows={4}
-                    value={formData.description}
+                    defaultValue={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
                 </div>
@@ -191,10 +197,10 @@ export default function NewPersonaPage() {
                         key={option.value}
                         type="button"
                         onClick={() => setFormData({ ...formData, visibility: option.value as FormData['visibility'] })}
-                        className={`p-4 rounded-lg border-2 text-left transition-all ${
+                        className={`p-4 rounded-lg border-2 text-left ${
                           formData.visibility === option.value
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border hover:border-primary/50'
+                            ? 'persona-btn-selected'
+                            : 'persona-btn'
                         }`}
                       >
                         <div className="font-medium mb-1">{option.label}</div>
@@ -231,10 +237,10 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, mbti: type })}
-                          className={`p-4 rounded-lg border-2 text-left transition-all hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 ${
                             formData.mbti === type
-                              ? 'border-primary bg-primary/5 shadow-md'
-                              : 'border-border hover:border-primary/50'
+                              ? 'persona-btn-selected'
+                              : 'persona-btn'
                           }`}
                         >
                           <div className="font-bold text-lg mb-1">{type}</div>
@@ -299,10 +305,10 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, disc: type })}
-                          className={`p-4 rounded-lg border-2 text-left transition-all hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 ${
                             formData.disc === type
-                              ? 'border-primary bg-primary/5 shadow-md'
-                              : 'border-border hover:border-primary/50'
+                              ? 'persona-btn-selected'
+                              : 'persona-btn'
                           }`}
                         >
                           <div className="font-bold text-lg mb-1">{type}</div>
@@ -367,10 +373,10 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, enneagram: type, enneagramWing: '' })}
-                          className={`p-4 rounded-lg border-2 text-center transition-all hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-center hover:scale-105 ${
                             formData.enneagram === type
-                              ? 'border-primary bg-primary/5 shadow-md'
-                              : 'border-border hover:border-primary/50'
+                              ? 'persona-btn-selected'
+                              : 'persona-btn'
                           }`}
                         >
                           <div className="font-bold text-2xl mb-1">{type}</div>
@@ -413,21 +419,25 @@ export default function NewPersonaPage() {
                           <Label>날개 유형 (선택사항)</Label>
                           <div className="grid grid-cols-2 gap-3">
                             {Object.entries(psychologyProfiles.enneagram[formData.enneagram].wings).map(
-                              ([wingKey, wing]) => (
-                                <button
-                                  key={wingKey}
-                                  type="button"
-                                  onClick={() => setFormData({ ...formData, enneagramWing: wingKey })}
-                                  className={`p-3 rounded-lg border-2 text-left transition-all ${
-                                    formData.enneagramWing === wingKey
-                                      ? 'border-primary bg-primary/10'
-                                      : 'border-border hover:border-primary/50'
-                                  }`}
-                                >
-                                  <div className="font-medium text-sm mb-1">{wingKey}</div>
-                                  <div className="text-xs text-muted-foreground">{wing.name}</div>
-                                </button>
-                              )
+                              ([wingKey, wing]) => {
+                                // wingKey에서 wing 숫자만 추출 (예: "5w6" -> "6")
+                                const wingNumber = wingKey.split('w')[1]
+                                return (
+                                  <button
+                                    key={wingKey}
+                                    type="button"
+                                    onClick={() => setFormData({ ...formData, enneagramWing: wingNumber })}
+                                    className={`p-3 rounded-lg border-2 text-left ${
+                                      formData.enneagramWing === wingNumber
+                                        ? 'persona-btn-selected'
+                                        : 'persona-btn'
+                                    }`}
+                                  >
+                                    <div className="font-medium text-sm mb-1">{wingKey}</div>
+                                    <div className="text-xs text-muted-foreground">{wing.name}</div>
+                                  </button>
+                                )
+                              }
                             )}
                           </div>
                         </div>
