@@ -76,27 +76,42 @@ Mode: Full Access (read/write)
 
 ### 5. Next.js 16 앱 구조 (완료) ✨ NEW!
 
+**⚠️ 중요: Next.js 16 라우팅 구조**
+```
+❌ middleware.ts (사용 안 함) - lib/supabase/middleware.ts는 세션 관리 유틸만
+✅ proxy.ts (실제 미들웨어) - Next.js 16 라우트 보호 및 인증 처리
+```
+
 **프로젝트 구조**:
 ```
 app/
 ├── app/                    # Next.js 16 App Router
 │   ├── globals.css        # Tailwind v4 + shadcn/ui 스타일
 │   ├── layout.tsx         # 루트 레이아웃
-│   └── page.tsx           # 홈 페이지
+│   ├── page.tsx           # 홈 페이지
+│   ├── (auth)/            # 인증 페이지 그룹
+│   │   ├── login/         # 로그인 페이지 ✅
+│   │   ├── signup/        # 회원가입 페이지 ✅
+│   │   └── auth/verify-email/ # 이메일 인증 ✅
+│   └── (protected)/       # 보호된 페이지 그룹
+│       └── dashboard/     # 대시보드 ✅
 ├── components/
 │   └── ui/               # shadcn/ui 컴포넌트 (10개)
+├── contexts/
+│   └── AuthContext.tsx   # 인증 Context ✅
 ├── lib/
 │   ├── supabase/         # Supabase 클라이언트
 │   │   ├── client.ts     # 브라우저 클라이언트
 │   │   ├── server.ts     # 서버 클라이언트
-│   │   └── middleware.ts # 세션 관리
+│   │   └── middleware.ts # ⚠️ 세션 관리 유틸 (실제 미들웨어 아님!)
 │   ├── prisma.ts         # Prisma 클라이언트
 │   └── utils.ts          # 유틸리티 함수
 ├── types/
-│   └── database.types.ts # Supabase 타입 정의
+│   ├── database.types.ts # Supabase 타입 정의
+│   └── auth.types.ts     # 인증 타입 정의 ✅
 ├── prisma/
 │   └── schema.prisma     # Prisma 스키마 (5 모델)
-├── proxy.ts              # Next.js 16 proxy
+├── proxy.ts              # ✅ Next.js 16 실제 미들웨어 (라우트 보호)
 └── .env.local            # 환경 변수
 ```
 
@@ -138,6 +153,17 @@ app/
 일반 CRUD     → Prisma (타입 안전성, RLS 우회)
 RLS 필요      → Supabase Client (보안)
 벡터 검색     → Supabase Client (pgvector)
+```
+
+**인증 시스템 (완료!) ✨**:
+```
+✅ AuthContext - 로그인/회원가입/로그아웃/비밀번호 재설정
+✅ proxy.ts - 라우트 보호 (Next.js 16 미들웨어)
+  - 보호된 경로: /dashboard, /personas, /chat
+  - 인증 경로: /login, /signup (로그인 시 /dashboard로 리다이렉트)
+✅ 로그인 페이지 - 완전히 구현
+✅ 회원가입 페이지
+✅ 대시보드 페이지 - 멋진 UI
 ```
 
 ---
@@ -189,10 +215,10 @@ RLS 필요      → Supabase Client (보안)
 - ✅ Supabase 클라이언트 설정 (SSR)
 - ✅ 환경 변수 설정 (.env.local)
 - ✅ Prisma ORM 통합
-- ⬜ 인증 플로우 구현 (Phase 3에서)
+- ✅ 인증 플로우 구현 (AuthContext + proxy.ts)
 
 ### Phase 3: 페르소나 시스템 (Day 3-4) ← 현재 여기
-- ⬜ 인증 시스템 구현 (Supabase Auth)
+- ✅ 인증 시스템 구현 (Supabase Auth - Phase 2에서 완료!)
 - ⬜ 페르소나 CRUD UI
 - ⬜ MBTI + DiSC + 애니어그램 선택
 - ⬜ 페르소나 생성/수정/삭제
@@ -295,14 +321,19 @@ Claude Code에서:
 
 ## 💡 다음 세션에서 할 일
 
-### Phase 3 시작하기
+### ⚠️ 중요: 라우팅 구조 기억하기!
 ```
-"PROJECT_STATUS.md를 읽고 현재 상태를 파악해줘.
-Phase 2가 완료되었으니 Phase 3을 시작하자.
-먼저 Supabase Auth 인증 시스템을 구현해줘."
+❌ middleware.ts는 사용 안 함 (세션 관리 유틸일 뿐)
+✅ proxy.ts가 Next.js 16의 실제 미들웨어
 ```
 
-### 또는 바로 페르소나 UI부터
+### Phase 3 계속하기 - 페르소나 UI
+```
+"PROJECT_STATUS.md를 읽고 현재 상태를 파악해줘.
+인증 시스템은 완료되었으니 페르소나 생성 UI를 만들자."
+```
+
+### 페르소나 CRUD 시작
 ```
 "페르소나 생성 UI를 만들어줘.
 MBTI, DiSC, 애니어그램을 선택할 수 있고,
@@ -326,13 +357,14 @@ Phase 2: ██████████ 100% ✅ 완료!
   ✅ shadcn/ui 설정
   ✅ Prisma ORM 통합
   ✅ 환경 변수 설정
+  ✅ 인증 시스템 (AuthContext + proxy.ts)
 
-Phase 3: ░░░░░░░░░░ 0%
-  ⬜ 인증 시스템
+Phase 3: ██░░░░░░░░ 20%
+  ✅ 인증 시스템 (Phase 2에서 완료)
   ⬜ 페르소나 CRUD
   ⬜ 심리 프로필 선택
 
-전체: ███████░░░ 65%
+전체: ████████░░ 75%
 ```
 
 ---
