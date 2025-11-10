@@ -1,7 +1,7 @@
 # Personality Agent - 프로젝트 상태
 
-> 마지막 업데이트: 2025-11-07 (Phase 1 완료!)
-> 현재 Phase: Phase 1 완료 → Phase 2 준비 중
+> 마지막 업데이트: 2025-11-10 (Phase 2 완료!)
+> 현재 Phase: Phase 2 완료 → Phase 3 준비 중
 
 ## 🎯 프로젝트 개요
 
@@ -9,6 +9,7 @@
 
 - **Frontend**: Next.js 16 + shadcn/ui + Vercel AI SDK
 - **Backend**: Supabase (PostgreSQL + pgvector + Auth)
+- **ORM**: Prisma (타입 안전 CRUD) + Supabase Client (RLS, 벡터 검색)
 - **AI**: OpenAI GPT-4o + text-embedding-3-small
 
 ---
@@ -73,6 +74,72 @@ Mode: Full Access (read/write)
 ✅ chat_messages (0 rows) - RLS enabled
 ```
 
+### 5. Next.js 16 앱 구조 (완료) ✨ NEW!
+
+**프로젝트 구조**:
+```
+app/
+├── app/                    # Next.js 16 App Router
+│   ├── globals.css        # Tailwind v4 + shadcn/ui 스타일
+│   ├── layout.tsx         # 루트 레이아웃
+│   └── page.tsx           # 홈 페이지
+├── components/
+│   └── ui/               # shadcn/ui 컴포넌트 (10개)
+├── lib/
+│   ├── supabase/         # Supabase 클라이언트
+│   │   ├── client.ts     # 브라우저 클라이언트
+│   │   ├── server.ts     # 서버 클라이언트
+│   │   └── middleware.ts # 세션 관리
+│   ├── prisma.ts         # Prisma 클라이언트
+│   └── utils.ts          # 유틸리티 함수
+├── types/
+│   └── database.types.ts # Supabase 타입 정의
+├── prisma/
+│   └── schema.prisma     # Prisma 스키마 (5 모델)
+├── proxy.ts              # Next.js 16 proxy
+└── .env.local            # 환경 변수
+```
+
+**설치된 주요 패키지**:
+```json
+{
+  "@supabase/supabase-js": "^2.48.1",
+  "@supabase/ssr": "^0.6.0",
+  "prisma": "^6.1.0",
+  "@prisma/client": "^6.1.0",
+  "clsx": "^2.1.1",
+  "tailwind-merge": "^2.7.0",
+  "class-variance-authority": "^0.7.1"
+}
+```
+
+**shadcn/ui 컴포넌트 (10개)**:
+- ✅ button, card, input, label
+- ✅ select, textarea, dialog, tabs
+- ✅ badge, avatar
+
+**Prisma 모델 (5개)**:
+- ✅ Profile - 사용자 프로필
+- ✅ PersonaProfile - 페르소나 정보
+- ✅ ChatSession - 대화 세션
+- ✅ ChatMessage - 대화 메시지
+- ✅ ConversationPattern - 대화 패턴
+
+**Prisma 데이터베이스 설정 (완료!)**:
+```
+✅ prisma 사용자 생성 (bypassrls 권한)
+✅ Connection Pooling 설정 (Transaction + Session)
+✅ 테이블 권한 부여 (SELECT, INSERT, UPDATE, DELETE)
+✅ Prisma Client 생성 및 연결 테스트 성공
+```
+
+**하이브리드 DB 접근 전략**:
+```
+일반 CRUD     → Prisma (타입 안전성, RLS 우회)
+RLS 필요      → Supabase Client (보안)
+벡터 검색     → Supabase Client (pgvector)
+```
+
 ---
 
 ## ⏳ 현재 진행 중
@@ -87,14 +154,23 @@ Mode: Full Access (read/write)
 5. ✅ RLS 정책 확인
 6. ✅ 샘플 데이터 확인
 
-### Phase 2: Next.js 앱 구조 (다음 작업)
+### Phase 2: Next.js 앱 구조 (완료!) 🎉
+
+**완료된 작업**:
+1. ✅ Next.js 16 프로젝트 초기화
+2. ✅ TypeScript 타입 생성 (Supabase)
+3. ✅ shadcn/ui 설치 및 설정
+4. ✅ Supabase 클라이언트 설정
+5. ✅ 환경 변수 설정 (.env.local)
+6. ✅ Prisma ORM 추가 및 스키마 작성
+
+### Phase 3: 페르소나 시스템 (다음 작업)
 
 **다음 작업**:
-1. ⏳ Next.js 16 프로젝트 초기화
-2. ⏳ TypeScript 타입 생성 (Supabase)
-3. ⏳ shadcn/ui 설치
-4. ⏳ Supabase 클라이언트 설정
-5. ⏳ 환경 변수 설정 (.env.local)
+1. ⏳ 페르소나 CRUD UI 구현
+2. ⏳ MBTI + DiSC + 애니어그램 선택 컴포넌트
+3. ⏳ 페르소나 생성/수정/삭제 기능
+4. ⏳ 공개/비공개 설정 기능
 
 ---
 
@@ -106,15 +182,17 @@ Mode: Full Access (read/write)
 - ✅ Schema 실행 및 검증
 - ✅ 데이터베이스 구축 완료
 
-### Phase 2: Next.js 앱 구조 (Day 2-3) ← 현재 여기
-- ⏳ Next.js 16 프로젝트 초기화
-- ⬜ TypeScript 타입 생성
-- ⬜ shadcn/ui 설치
-- ⬜ Supabase 클라이언트 설정
-- ⬜ 환경 변수 설정
-- ⬜ 인증 플로우 구현
+### Phase 2: Next.js 앱 구조 (Day 2-3) ✅ 완료!
+- ✅ Next.js 16 프로젝트 초기화
+- ✅ TypeScript 타입 생성 (Supabase)
+- ✅ shadcn/ui 설치 (10개 컴포넌트)
+- ✅ Supabase 클라이언트 설정 (SSR)
+- ✅ 환경 변수 설정 (.env.local)
+- ✅ Prisma ORM 통합
+- ⬜ 인증 플로우 구현 (Phase 3에서)
 
-### Phase 3: 페르소나 시스템 (Day 3-4)
+### Phase 3: 페르소나 시스템 (Day 3-4) ← 현재 여기
+- ⬜ 인증 시스템 구현 (Supabase Auth)
 - ⬜ 페르소나 CRUD UI
 - ⬜ MBTI + DiSC + 애니어그램 선택
 - ⬜ 페르소나 생성/수정/삭제
@@ -181,7 +259,8 @@ Claude Code에서:
 ### 설정
 - MCP: [.mcp.json](.mcp.json) (Git ignored)
 - 템플릿: [.mcp.json.example](.mcp.json.example)
-- 환경변수: `.env.local` (아직 없음)
+- 환경변수: [app/.env.local](app/.env.local) (Git ignored)
+- Prisma: [app/prisma/schema.prisma](app/prisma/schema.prisma)
 
 ### 문서
 - 아키텍처: [docs/architecture.md](docs/architecture.md)
@@ -198,13 +277,16 @@ Claude Code에서:
 ## 🐛 알려진 이슈
 
 ~~1. **schema.sql 아직 실행 안됨**~~ ✅ 해결됨!
-   - ✅ Supabase MCP 연결 완료
-   - ✅ 테이블 생성 완료
+~~2. **Next.js 프로젝트 아직 없음**~~ ✅ 해결됨!
 
-2. **Next.js 프로젝트 아직 없음**
-   - Phase 2에서 생성 예정
+**현재 남은 이슈:**
 
-3. **conversation_patterns RLS 미활성화**
+1. ~~**Prisma Client 생성 필요**~~ ✅ 해결됨!
+   - ✅ DATABASE_URL 설정 완료
+   - ✅ `npx prisma generate` 실행 완료
+   - ✅ 연결 테스트 성공
+
+2. **conversation_patterns RLS 미활성화**
    - 현재 conversation_patterns 테이블만 RLS가 비활성화 상태
    - 전역 공유 데이터이므로 의도된 설정일 수 있음
    - 필요시 RLS 추가 검토
@@ -213,18 +295,18 @@ Claude Code에서:
 
 ## 💡 다음 세션에서 할 일
 
-### Phase 2 시작하기
+### Phase 3 시작하기
 ```
 "PROJECT_STATUS.md를 읽고 현재 상태를 파악해줘.
-Phase 1이 완료되었으니 Phase 2를 시작하자.
-Next.js 16 프로젝트를 초기화해줘."
+Phase 2가 완료되었으니 Phase 3을 시작하자.
+먼저 Supabase Auth 인증 시스템을 구현해줘."
 ```
 
-### 또는 구체적으로
+### 또는 바로 페르소나 UI부터
 ```
-"Next.js 16 + TypeScript + App Router로 프로젝트를 만들고,
-Supabase TypeScript 타입을 생성한 다음,
-shadcn/ui를 설치해줘."
+"페르소나 생성 UI를 만들어줘.
+MBTI, DiSC, 애니어그램을 선택할 수 있고,
+페르소나 이름과 설명을 입력할 수 있어야 해."
 ```
 
 ---
@@ -238,23 +320,36 @@ Phase 1: ██████████ 100% ✅ 완료!
   ✅ Schema 실행
   ✅ 검증 완료
 
-Phase 2: ██░░░░░░░░ 20%
-  ⏳ Next.js 초기화
-  ⬜ UI 설정
-  ⬜ 인증 구현
+Phase 2: ██████████ 100% ✅ 완료!
+  ✅ Next.js 16 초기화
+  ✅ TypeScript 타입
+  ✅ shadcn/ui 설정
+  ✅ Prisma ORM 통합
+  ✅ 환경 변수 설정
 
-전체: █████░░░░░ 50%
+Phase 3: ░░░░░░░░░░ 0%
+  ⬜ 인증 시스템
+  ⬜ 페르소나 CRUD
+  ⬜ 심리 프로필 선택
+
+전체: ███████░░░ 65%
 ```
 
 ---
 
 ## 🔗 유용한 링크
 
-- Supabase Dashboard: https://supabase.com/dashboard/project/tscptdhwdpedngkpmwlm
-- Supabase SQL Editor: https://supabase.com/dashboard/project/tscptdhwdpedngkpmwlm/sql
-- Next.js Docs: https://nextjs.org/docs
+### Supabase
+- Dashboard: https://supabase.com/dashboard/project/tscptdhwdpedngkpmwlm
+- SQL Editor: https://supabase.com/dashboard/project/tscptdhwdpedngkpmwlm/sql
+- Auth Settings: https://supabase.com/dashboard/project/tscptdhwdpedngkpmwlm/auth/users
+
+### Documentation
+- Next.js 16: https://nextjs.org/docs
 - shadcn/ui: https://ui.shadcn.com
+- Prisma: https://www.prisma.io/docs
 - Vercel AI SDK: https://sdk.vercel.ai/docs
+- Supabase Auth: https://supabase.com/docs/guides/auth
 
 ---
 
@@ -273,5 +368,5 @@ Phase 2: ██░░░░░░░░ 20%
 ---
 
 **마지막 작업자**: Claude Code
-**마지막 완료**: Phase 1 - 데이터베이스 구축 완료 (2025-11-07)
-**다음 작업**: Phase 2 - Next.js 16 프로젝트 초기화
+**마지막 완료**: Phase 2 - Next.js 16 앱 구조 완료 (2025-11-10)
+**다음 작업**: Phase 3 - 페르소나 시스템 (인증 + CRUD UI)

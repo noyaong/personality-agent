@@ -36,3 +36,5 @@ yarn-error.log*
 
 # Local
 *.local
+
+/app/generated/prisma

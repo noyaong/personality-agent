@@ -1,0 +1,148 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================================================
+// User Profile
+// ============================================================================
+
+model Profile {
+  id        String   @id @db.Uuid
+  email     String?
+  fullName  String?  @map("full_name")
+  mbti      String?  @db.VarChar(4)
+  disc      String?  @db.VarChar(4)
+  enneagram String?  @db.VarChar(3)
+  avatarUrl String?  @map("avatar_url")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  // Self-reference for user's avatar persona
+  myAvatarPersonaId String?         @map("my_avatar_persona_id") @db.Uuid
+  myAvatarPersona   PersonaProfile? @relation("UserAvatarPersona", fields: [myAvatarPersonaId], references: [id], onDelete: SetNull)
+
+  // Relations
+  createdPersonas PersonaProfile[] @relation("CreatedPersonas")
+  chatSessions    ChatSession[]
+
+  @@map("profiles")
+}
+
+// ============================================================================
+// Persona Profiles
+// ============================================================================
+
+model PersonaProfile {
+  id                 String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  personaName        String   @map("persona_name")
+  personaDescription String?  @map("persona_description")
+  mbti               String   @db.VarChar(4)
+  disc               String?  @db.VarChar(4)
+  enneagram          String?  @db.VarChar(3)
+  traits             Json?
+  communicationStyle Json?    @map("communication_style")
+  behavioralPatterns Json?    @map("behavioral_patterns")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  lastUsedAt         DateTime @default(now()) @map("last_used_at") @db.Timestamptz(6)
+
+  // Creator info
+  creatorId String? @map("creator_id") @db.Uuid
+  creator   Profile? @relation("CreatedPersonas", fields: [creatorId], references: [id], onDelete: SetNull)
+
+  // Sharing & visibility
+  visibility         String  @default("private") @db.VarChar(20)
+  isOfficial         Boolean @default(false) @map("is_official")
+  isActive           Boolean @default(true) @map("is_active")
+
+  // Usage statistics
+  usageCount        Int @default(0) @map("usage_count")
+  creatorUsageCount Int @default(0) @map("creator_usage_count")
+  publicUsageCount  Int @default(0) @map("public_usage_count")
+
+  // Vector embedding (handled by Supabase, not Prisma)
+  profileEmbedding String? @map("profile_embedding")
+
+  // Relations
+  usersWithThisAvatar Profile[]     @relation("UserAvatarPersona")
+  chatSessions        ChatSession[]
+
+  @@map("persona_profiles")
+}
+
+// ============================================================================
+// Chat Sessions
+// ============================================================================
+
+model ChatSession {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId           String?  @map("user_id") @db.Uuid
+  personaProfileId String?  @map("persona_profile_id") @db.Uuid
+  relationshipType String   @map("relationship_type") @db.VarChar(50)
+  sessionStatus    String   @default("active") @map("session_status") @db.VarChar(20)
+  startedAt        DateTime @default(now()) @map("started_at") @db.Timestamptz(6)
+  endedAt          DateTime? @map("ended_at") @db.Timestamptz(6)
+  messageCount     Int      @default(0) @map("message_count")
+  totalTokensUsed  Int      @default(0) @map("total_tokens_used")
+  sessionMetadata  Json?    @map("session_metadata")
+
+  // Relations
+  user          Profile?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+  personaProfile PersonaProfile? @relation(fields: [personaProfileId], references: [id], onDelete: SetNull)
+  messages      ChatMessage[]
+
+  @@map("chat_sessions")
+}
+
+// ============================================================================
+// Chat Messages
+// ============================================================================
+
+model ChatMessage {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId      String?  @map("session_id") @db.Uuid
+  role           String   @db.VarChar(20)
+  content        String
+  tokensUsed     Int?     @map("tokens_used")
+  responseTimeMs Int?     @map("response_time_ms")
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Relations
+  session ChatSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("chat_messages")
+}
+
+// ============================================================================
+// Conversation Patterns (Read-only, managed by Supabase)
+// ============================================================================
+
+model ConversationPattern {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mbti                 String   @db.VarChar(4)
+  disc                 String?  @db.VarChar(4)
+  enneagram            String?  @db.VarChar(3)
+  relationshipType     String   @map("relationship_type") @db.VarChar(50)
+  patternCategory      String   @map("pattern_category") @db.VarChar(100)
+  conversationTopic    String?  @map("conversation_topic")
+  emotionalContext     String?  @map("emotional_context")
+  patternText          String   @map("pattern_text")
+  exampleResponses     Json?    @map("example_responses")
+  effectivenessScore   Float?   @map("effectiveness_score")
+  usageFrequency       Int      @default(0) @map("usage_frequency")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Vector embedding (handled by Supabase, not Prisma)
+  patternEmbedding String? @map("pattern_embedding")
+
+  @@map("conversation_patterns")
+}
