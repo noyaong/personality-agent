@@ -1,7 +1,8 @@
 # Personality Agent - 프로젝트 상태
 
-> 마지막 업데이트: 2025-11-10 (Phase 2 완료!)
-> 현재 Phase: Phase 2 완료 → Phase 3 준비 중
+> 마지막 업데이트: 2025-11-11 (Phase 3 완료!)
+> 현재 Phase: Phase 3 - 페르소나 시스템 (100% 완료) ✅
+> 최근 작업: 페르소나 CRUD 완성 + 검색/공유/복제 기능 추가
 
 ## 🎯 프로젝트 개요
 
@@ -10,7 +11,9 @@
 - **Frontend**: Next.js 16 + shadcn/ui + Vercel AI SDK
 - **Backend**: Supabase (PostgreSQL + pgvector + Auth)
 - **ORM**: Prisma (타입 안전 CRUD) + Supabase Client (RLS, 벡터 검색)
-- **AI**: OpenAI GPT-4o + text-embedding-3-small
+- **AI**: Vercel AI SDK (전체 통합) - UI (useChat, useCompletion) + Embedding (embed, embedMany) + LLM 호출
+  - Provider: OpenAI GPT-4o + text-embedding-3-small
+  - ⚠️ **중요**: 별도의 OpenAI SDK 설치 불필요 (`@ai-sdk/openai` 어댑터가 OpenAI API 호출 처리)
 
 ---
 
@@ -82,9 +85,9 @@ Mode: Full Access (read/write)
 ✅ proxy.ts (실제 미들웨어) - Next.js 16 라우트 보호 및 인증 처리
 ```
 
-**프로젝트 구조**:
+**프로젝트 구조** (⚠️ 폴더 구조 변경됨!):
 ```
-app/
+project/                    # ✅ app/ → project/ 이름 변경 (혼선 방지)
 ├── app/                    # Next.js 16 App Router
 │   ├── globals.css        # Tailwind v4 + shadcn/ui 스타일
 │   ├── layout.tsx         # 루트 레이아웃
@@ -93,8 +96,14 @@ app/
 │   │   ├── login/         # 로그인 페이지 ✅
 │   │   ├── signup/        # 회원가입 페이지 ✅
 │   │   └── auth/verify-email/ # 이메일 인증 ✅
-│   └── (protected)/       # 보호된 페이지 그룹
-│       └── dashboard/     # 대시보드 ✅
+│   ├── (protected)/       # 보호된 페이지 그룹
+│   │   ├── dashboard/     # 대시보드 ✅
+│   │   └── personas/      # 페르소나 관리 ✅ NEW!
+│   │       ├── page.tsx   # 페르소나 목록 ✅
+│   │       └── new/       # 페르소나 생성 ✅ (스타일 이슈 있음)
+│   └── api/               # API 라우트 ✅ NEW!
+│       └── personas/      # 페르소나 API ✅
+│           └── route.ts   # GET, POST 엔드포인트
 ├── components/
 │   └── ui/               # shadcn/ui 컴포넌트 (10개)
 ├── contexts/
@@ -128,6 +137,14 @@ app/
 }
 ```
 
+**Phase 4에 설치할 AI 패키지**:
+```json
+{
+  "ai": "latest",              // Vercel AI SDK 코어
+  "@ai-sdk/openai": "latest"   // OpenAI 어댑터 (OpenAI API 래퍼)
+}
+```
+
 **shadcn/ui 컴포넌트 (10개)**:
 - ✅ button, card, input, label
 - ✅ select, textarea, dialog, tabs
@@ -153,6 +170,34 @@ app/
 일반 CRUD     → Prisma (타입 안전성, RLS 우회)
 RLS 필요      → Supabase Client (보안)
 벡터 검색     → Supabase Client (pgvector)
+```
+
+**AI 아키텍처 결정 (2025-11-10)** ✨:
+```
+전략: Vercel AI SDK 전체 사용 (OpenAI SDK 별도 설치 불필요)
+
+1. UI 레이어
+   - useChat: 실시간 스트리밍 대화
+   - useCompletion: 텍스트 생성
+
+2. Embedding 레이어
+   - embed/embedMany: 벡터 생성
+   - Model: text-embedding-3-small (1536 dimensions)
+
+3. LLM 호출
+   - Model: GPT-4o
+   - Provider: @ai-sdk/openai (OpenAI API 래퍼)
+
+4. 저장 전략: Supabase Edge Function + Database Trigger
+   - INSERT/UPDATE 시 자동으로 embedding 생성
+   - Deno 환경에서 Vercel AI SDK 사용 (npm:ai, npm:@ai-sdk/openai)
+   - Database Trigger가 Edge Function 호출
+   - 벡터 검색은 Supabase Client로 직접 쿼리
+
+⚠️ 중요: OpenAI SDK 직접 설치 불필요
+   - Vercel AI SDK가 내부적으로 OpenAI API 호출
+   - @ai-sdk/openai 어댑터가 모든 API 통신 처리
+   - 설치 명령: npm install ai @ai-sdk/openai
 ```
 
 **인증 시스템 (완료!) ✨**:
@@ -190,13 +235,37 @@ RLS 필요      → Supabase Client (보안)
 5. ✅ 환경 변수 설정 (.env.local)
 6. ✅ Prisma ORM 추가 및 스키마 작성
 
-### Phase 3: 페르소나 시스템 (다음 작업)
+### Phase 3: 페르소나 시스템 (완료! 100%) ✅
 
-**다음 작업**:
-1. ⏳ 페르소나 CRUD UI 구현
-2. ⏳ MBTI + DiSC + 애니어그램 선택 컴포넌트
-3. ⏳ 페르소나 생성/수정/삭제 기능
-4. ⏳ 공개/비공개 설정 기능
+**완료된 작업**:
+1. ✅ DiSC 심리 프로필 데이터 확장 (9개 → 16개 표준 유형)
+   - **DiSC 16 표준 유형 확정**: D, I, S, C (4 기본) + DI, DS, DC, ID, IS, IC, SI, SD, SC, CD, CI, CS (12 조합)
+   - **모두 대문자로 관리**: 일관성 유지 위해 모든 DiSC 키를 대문자로 변환
+   - 추가된 유형: DS, SD, IC, CI (각 기본 유형별 3개 조합 완성)
+
+2. ✅ **페르소나 CRUD 완성**
+   - 목록 페이지: [project/app/(protected)/personas/page.tsx](project/app/(protected)/personas/page.tsx)
+   - 생성 페이지: [project/app/(protected)/personas/new/page.tsx](project/app/(protected)/personas/new/page.tsx)
+   - 상세 페이지: [project/app/(protected)/personas/[id]/page.tsx](project/app/(protected)/personas/[id]/page.tsx)
+   - 수정 페이지: [project/app/(protected)/personas/[id]/edit/page.tsx](project/app/(protected)/personas/[id]/edit/page.tsx)
+   - API 라우트: [project/app/api/personas/route.ts](project/app/api/personas/route.ts), [project/app/api/personas/[id]/route.ts](project/app/api/personas/[id]/route.ts)
+
+3. ✅ **추가 기능**
+   - 검색 기능: 이름, 설명, MBTI, DiSC, Enneagram으로 실시간 검색
+   - 공개 설정 변경: 비공개/링크 공유/공개 전환 (다이얼로그)
+   - 페르소나 복제: 기존 페르소나를 복사하여 새로 생성
+   - 삭제 확인 다이얼로그 (경고 메시지)
+   - 권한 관리: 본인 페르소나만 수정/삭제 가능
+
+4. ✅ UI/UX 개선
+   - 4단계 위저드 (기본정보 → MBTI → DiSC → Enneagram)
+   - 심리 프로필 설명 표시
+   - 카드 클릭 → 상세 페이지 이동
+   - "대화 시작" 버튼 별도 제공
+   - 한글 IME 입력 버그 수정 (value → defaultValue)
+
+**알려진 이슈**:
+- ⚠️ 페르소나 선택 버튼 다크 모드 가시성 문제 (해결 보류 - 기능은 정상 작동)
 
 ---
 
@@ -217,16 +286,26 @@ RLS 필요      → Supabase Client (보안)
 - ✅ Prisma ORM 통합
 - ✅ 인증 플로우 구현 (AuthContext + proxy.ts)
 
-### Phase 3: 페르소나 시스템 (Day 3-4) ← 현재 여기
-- ✅ 인증 시스템 구현 (Supabase Auth - Phase 2에서 완료!)
-- ⬜ 페르소나 CRUD UI
-- ⬜ MBTI + DiSC + 애니어그램 선택
-- ⬜ 페르소나 생성/수정/삭제
-- ⬜ 공개/비공개 설정
+### Phase 3: 페르소나 시스템 (Day 3-4) ✅ 완료! (100%)
+- ✅ 인증 시스템 구현 (Supabase Auth)
+- ✅ DiSC 데이터 확장 (9 → 16 표준 유형)
+- ✅ 페르소나 CRUD (생성/조회/수정/삭제)
+- ✅ 페르소나 목록/상세/수정 페이지
+- ✅ API 라우트 (GET, POST, PUT, DELETE)
+- ✅ MBTI + DiSC + 애니어그램 선택 UI (4단계 위저드)
+- ✅ 검색 기능 (실시간 필터링)
+- ✅ 공개 설정 변경 UI (비공개/링크 공유/공개)
+- ✅ 페르소나 복제 기능
+- ✅ 권한 관리 및 삭제 확인 다이얼로그
+- ⚠️ 스타일 이슈 (다크 모드 버튼 가시성 - 해결 보류)
 
-### Phase 4: 대화 엔진 (Day 5-6)
-- ⬜ 실시간 스트리밍 대화
-- ⬜ 벡터 검색 통합
+### Phase 4: 대화 엔진 & 벡터 검색 (Day 5-6)
+- ⬜ Vercel AI SDK 설치 (`npm install ai @ai-sdk/openai`)
+- ⬜ 실시간 스트리밍 대화 (useChat Hook)
+- ⬜ **벡터 검색 통합** (Supabase Edge Function + Database Trigger 방식)
+  - Embedding 생성: Vercel AI SDK의 `embed` 함수 사용
+  - 저장 전략: Supabase Edge Function에서 INSERT/UPDATE 시 자동 생성
+  - 벡터 검색: Supabase Client로 pgvector 쿼리
 - ⬜ 관계별 프롬프트
 - ⬜ 대화 히스토리
 
@@ -285,8 +364,8 @@ Claude Code에서:
 ### 설정
 - MCP: [.mcp.json](.mcp.json) (Git ignored)
 - 템플릿: [.mcp.json.example](.mcp.json.example)
-- 환경변수: [app/.env.local](app/.env.local) (Git ignored)
-- Prisma: [app/prisma/schema.prisma](app/prisma/schema.prisma)
+- 환경변수: [project/.env.local](project/.env.local) (Git ignored)
+- Prisma: [project/prisma/schema.prisma](project/prisma/schema.prisma)
 
 ### 문서
 - 아키텍처: [docs/architecture.md](docs/architecture.md)
@@ -304,15 +383,26 @@ Claude Code에서:
 
 ~~1. **schema.sql 아직 실행 안됨**~~ ✅ 해결됨!
 ~~2. **Next.js 프로젝트 아직 없음**~~ ✅ 해결됨!
+~~3. **Prisma Client 생성 필요**~~ ✅ 해결됨!
 
 **현재 남은 이슈:**
 
-1. ~~**Prisma Client 생성 필요**~~ ✅ 해결됨!
-   - ✅ DATABASE_URL 설정 완료
-   - ✅ `npx prisma generate` 실행 완료
-   - ✅ 연결 테스트 성공
+1. ⚠️ **페르소나 선택 버튼 다크 모드 가시성 문제** (해결 보류)
+   - 증상: 페르소나 생성 페이지의 MBTI/DiSC/Enneagram 선택 버튼이 다크 모드에서 검은색으로 보임
+   - 시도한 해결책:
+     - Tailwind 직접 색상 클래스 (border-gray-600, bg-gray-800 등)
+     - 커스텀 CSS 클래스 (.persona-btn, .persona-btn-selected)
+     - !important 플래그 추가
+   - 현재 상태: 해결 보류, 추후 다시 검토 필요
+   - 영향: 기능은 정상 작동, UI 가시성만 저하
+   - 파일: [project/app/(protected)/personas/new/page.tsx](project/app/(protected)/personas/new/page.tsx)
+   - 파일: [project/app/globals.css](project/app/globals.css) (line 168-213)
 
-2. **conversation_patterns RLS 미활성화**
+2. ✅ **한글 IME 입력 버그** - 해결됨!
+   - 문제: React controlled input에서 한글 조합 중 글자가 분리되는 현상
+   - 해결: `value` 속성을 `defaultValue`로 변경하여 uncontrolled input 방식 사용
+
+3. **conversation_patterns RLS 미활성화**
    - 현재 conversation_patterns 테이블만 RLS가 비활성화 상태
    - 전역 공유 데이터이므로 의도된 설정일 수 있음
    - 필요시 RLS 추가 검토
@@ -321,23 +411,52 @@ Claude Code에서:
 
 ## 💡 다음 세션에서 할 일
 
-### ⚠️ 중요: 라우팅 구조 기억하기!
+### ⚠️ 중요 사항들!
 ```
-❌ middleware.ts는 사용 안 함 (세션 관리 유틸일 뿐)
-✅ proxy.ts가 Next.js 16의 실제 미들웨어
+1. 라우팅 구조
+   ❌ middleware.ts는 사용 안 함 (세션 관리 유틸일 뿐)
+   ✅ proxy.ts가 Next.js 16의 실제 미들웨어
+
+2. 폴더 구조
+   ⚠️ 루트 폴더가 app/에서 project/로 변경됨
+   - 이유: app/app/ 중복으로 인한 혼선 방지
+
+3. DiSC 프로필
+   ✅ 9개 → 16개 표준 유형으로 확장 완료 (2025-11-11)
+   - data/psychology-profiles.json 참고
+   - D, I, S, C (4 기본) + 12개 조합 (각 기본 유형별 3개)
+
+4. Phase 3 완료!
+   ✅ 페르소나 시스템 100% 완성 (2025-11-11)
+   - CRUD 완성 (생성/조회/수정/삭제)
+   - 검색, 공개 설정, 복제 기능 추가
 ```
 
-### Phase 3 계속하기 - 페르소나 UI
+### Phase 4 시작하기 - 대화 엔진 & 벡터 검색
+
+**우선순위 1: Vercel AI SDK 설치**
 ```
-"PROJECT_STATUS.md를 읽고 현재 상태를 파악해줘.
-인증 시스템은 완료되었으니 페르소나 생성 UI를 만들자."
+"Phase 4를 시작하자. Vercel AI SDK를 설치하고
+대화 페이지를 만들어줘.
+- npm install ai @ai-sdk/openai
+- /chat 페이지 생성
+- useChat Hook으로 실시간 스트리밍"
 ```
 
-### 페르소나 CRUD 시작
+**우선순위 2: 페르소나 기반 대화**
 ```
-"페르소나 생성 UI를 만들어줘.
-MBTI, DiSC, 애니어그램을 선택할 수 있고,
-페르소나 이름과 설명을 입력할 수 있어야 해."
+"선택한 페르소나의 심리 프로필을 반영한
+대화를 구현해줘.
+- MBTI, DiSC, Enneagram 기반 프롬프트 생성
+- 대화 세션 저장
+- 대화 히스토리 표시"
+```
+
+**우선순위 3: 벡터 검색 (선택)**
+```
+"유사한 대화 패턴을 검색하는 기능을 추가해줘.
+- Supabase Edge Function으로 embedding 생성
+- pgvector로 유사도 검색"
 ```
 
 ---
@@ -359,12 +478,24 @@ Phase 2: ██████████ 100% ✅ 완료!
   ✅ 환경 변수 설정
   ✅ 인증 시스템 (AuthContext + proxy.ts)
 
-Phase 3: ██░░░░░░░░ 20%
-  ✅ 인증 시스템 (Phase 2에서 완료)
-  ⬜ 페르소나 CRUD
-  ⬜ 심리 프로필 선택
+Phase 3: ██████████ 100% ✅ 완료!
+  ✅ 인증 시스템
+  ✅ DiSC 데이터 확장 (16 표준 유형)
+  ✅ 페르소나 CRUD (생성/조회/수정/삭제)
+  ✅ 페르소나 목록/상세/수정 페이지
+  ✅ 페르소나 API (GET, POST, PUT, DELETE)
+  ✅ 검색 기능 (실시간 필터링)
+  ✅ 공개 설정 변경 UI
+  ✅ 페르소나 복제 기능
+  ✅ 권한 관리 및 삭제 확인 다이얼로그
+  ⚠️ 스타일 이슈 (해결 보류)
 
-전체: ████████░░ 75%
+Phase 4: ░░░░░░░░░░ 0% ← 다음 작업!
+  ⬜ Vercel AI SDK 설치
+  ⬜ 대화 엔진 (useChat Hook)
+  ⬜ 벡터 검색 (Edge Function + embed)
+
+전체: █████████░ 90%
 ```
 
 ---
@@ -400,5 +531,94 @@ Phase 3: ██░░░░░░░░ 20%
 ---
 
 **마지막 작업자**: Claude Code
-**마지막 완료**: Phase 2 - Next.js 16 앱 구조 완료 (2025-11-10)
-**다음 작업**: Phase 3 - 페르소나 시스템 (인증 + CRUD UI)
+**마지막 완료**: Phase 3 (100%) - 페르소나 시스템 완성! (2025-11-11)
+**다음 작업**: Phase 4 시작 - 대화 엔진 & 벡터 검색
+
+---
+
+## 📝 최근 변경사항
+
+### 2025-11-11 세션 (Phase 3 완료!)
+
+#### 1. 페르소나 CRUD 완성
+- ✅ **페르소나 수정/삭제 API** ([project/app/api/personas/[id]/route.ts](project/app/api/personas/[id]/route.ts))
+  - GET: 페르소나 상세 조회
+  - PUT: 페르소나 수정 (본인만 가능)
+  - DELETE: 페르소나 삭제 (본인만 가능, CASCADE)
+
+- ✅ **페르소나 상세 페이지** ([project/app/(protected)/personas/[id]/page.tsx](project/app/(protected)/personas/[id]/page.tsx))
+  - 페르소나 정보 및 통계 표시
+  - MBTI/DiSC/Enneagram 설명
+  - 수정/삭제 버튼 (본인만)
+  - 공개 설정 변경 다이얼로그
+  - 페르소나 복제 기능
+
+- ✅ **페르소나 수정 페이지** ([project/app/(protected)/personas/[id]/edit/page.tsx](project/app/(protected)/personas/[id]/edit/page.tsx))
+  - 기존 데이터 로드 및 표시
+  - 4단계 위저드로 수정
+  - 생성 페이지와 동일한 UI/UX
+
+#### 2. 추가 기능 구현
+- ✅ **검색 기능** (목록 페이지)
+  - 이름, 설명, MBTI, DiSC, Enneagram으로 실시간 검색
+  - 검색 결과 개수 표시
+
+- ✅ **공개 설정 변경**
+  - 비공개 (🔒) / 링크 공유 (🔗) / 공개 (🌍)
+  - 상세 페이지에서 Badge 클릭으로 변경
+  - 시각적 다이얼로그 UI
+
+- ✅ **페르소나 복제**
+  - 기존 페르소나를 "(복사본)" 이름으로 복제
+  - 복제된 페르소나는 기본적으로 비공개
+  - 모든 사용자가 다른 페르소나 복제 가능
+
+#### 3. UI/UX 개선
+- ✅ 페르소나 목록에서 카드 클릭 → 상세 페이지 이동
+- ✅ "대화 시작" 버튼 별도 제공
+- ✅ 삭제 확인 다이얼로그 (경고 메시지)
+- ✅ 권한 관리 (본인만 수정/삭제)
+
+#### 4. DiSC 16개 표준 유형 확장 완료
+  - 기존 12개에서 4개 추가 (DS, SD, IC, CI)
+  - 각 기본 유형(D, I, S, C)별로 3개 조합 완성
+  - [data/psychology-profiles.json](data/psychology-profiles.json) 업데이트
+
+### 2025-11-10 세션
+
+### 폴더 구조 변경
+- ✅ `app/` → `project/` 이름 변경
+- 이유: Next.js App Router와의 혼선 방지 (app/app/ 중복)
+- 영향: 모든 경로가 `project/` 기준으로 변경됨
+
+### DiSC 심리 프로필 확장 (결정 사항 확정!)
+- ✅ 9개 → 16개 표준 유형으로 확장
+- ✅ **DiSC 16 표준 유형**: D, I, S, C (4 기본) + DI, DS, DC, ID, IS, IC, SI, SD, SC, CD, CI, CS (12 조합)
+- ✅ **모두 대문자로 관리 (통일)**: 일관성과 표준 준수
+- 추가된 유형 (Phase 1): ID, SI, CD (누락되었던 조합)
+- 추가된 유형 (Phase 2): DS, SD, IC, CI (각 기본 유형별 3개 조합 완성)
+- 변환: Di → DI, Id → ID, Is → IS, Si → SI, Sc → SC, Cs → CS, Cd → CD
+- 각 유형에 pace, priority, fear 속성 추가
+- 파일: [data/psychology-profiles.json](data/psychology-profiles.json)
+
+### 페르소나 시스템 구현
+- ✅ 페르소나 목록 페이지 ([project/app/(protected)/personas/page.tsx](project/app/(protected)/personas/page.tsx))
+  - 내 페르소나 / 공개 페르소나 / 공식 페르소나 탭
+  - Prisma를 통한 데이터 조회
+- ✅ 페르소나 생성 페이지 ([project/app/(protected)/personas/new/page.tsx](project/app/(protected)/personas/new/page.tsx))
+  - 4단계 위저드 (기본정보 → MBTI → DiSC → Enneagram)
+  - 한글 IME 입력 버그 수정 (value → defaultValue)
+  - ⚠️ 버튼 스타일 이슈 존재 (해결 보류)
+- ✅ 페르소나 API ([project/app/api/personas/route.ts](project/app/api/personas/route.ts))
+  - GET: 본인 + 공개 + 공식 페르소나 조회
+  - POST: 새 페르소나 생성
+
+### 버그 수정
+- ✅ 한글 IME 입력 버그 수정
+  - 문제: React controlled input에서 한글 조합 중 글자 분리
+  - 해결: `value` → `defaultValue` 변경 (uncontrolled input)
+
+### 알려진 이슈
+- ⚠️ 페르소나 선택 버튼 다크 모드 가시성 문제 (해결 보류)
+  - 여러 해결 시도했으나 모두 실패
+  - 기능은 정상 작동, UI 가시성만 저하

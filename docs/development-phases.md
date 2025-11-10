@@ -136,7 +136,9 @@ supabase gen types typescript --project-id [PROJECT_ID] > src/lib/supabase/datab
 #### 2. 페르소나 생성 로직
 - [ ] 특성 조합 함수 (`lib/personas/traits.ts`)
 - [ ] 프로필 텍스트 생성 (`lib/personas/builder.ts`)
-- [ ] OpenAI 임베딩 생성 (`lib/ai/embeddings.ts`)
+- [ ] Vercel AI SDK Embedding 생성 (`lib/ai/embeddings.ts`)
+  - `embed({ model: openai.textEmbeddingModel('text-embedding-3-small'), value })` 사용
+  - ⚠️ OpenAI SDK 직접 사용 불필요
 - [ ] 페르소나 저장 (with vector)
 
 #### 3. API 구현
@@ -145,12 +147,17 @@ supabase gen types typescript --project-id [PROJECT_ID] > src/lib/supabase/datab
 - [ ] GET `/api/personas/[id]` - 상세
 - [ ] PUT `/api/personas/[id]` - 수정
 - [ ] DELETE `/api/personas/[id]` - 삭제
-- [ ] POST `/api/embeddings` - 임베딩 생성
+
+**⚠️ Embedding 저장 전략 (Phase 4)**:
+Phase 4에서 Supabase Edge Function + Database Trigger 방식으로 구현:
+- INSERT/UPDATE 시 자동으로 Edge Function 호출
+- Edge Function에서 Vercel AI SDK로 embedding 생성
+- Database에 자동 저장
 
 #### 4. UI 컴포넌트
 - [ ] 페르소나 생성 폼 (`components/personas/PersonaForm.tsx`)
   - MBTI 선택 드롭다운 (16가지)
-  - DiSC 선택 드롭다운 (조합)
+  - DiSC 선택 드롭다운 (12 표준 유형: D, I, S, C + 8 조합, 모두 대문자)
   - 애니어그램 선택 드롭다운 (날개 포함)
   - 실시간 특성 미리보기
 - [ ] 페르소나 카드 (`components/personas/PersonaCard.tsx`)
@@ -196,27 +203,30 @@ supabase gen types typescript --project-id [PROJECT_ID] > src/lib/supabase/datab
 
 ### ✅ 체크리스트
 
-#### 1. Chat API 구현
+#### 1. AI SDK 설치 및 Chat API 구현
+- [ ] Vercel AI SDK 설치: `npm install ai @ai-sdk/openai`
 - [ ] Edge Runtime 설정
 - [ ] 페르소나 로드
-- [ ] 메시지 임베딩 생성
-- [ ] pgvector 유사 패턴 검색
+- [ ] 메시지 임베딩 생성 (Vercel AI SDK `embed`)
+- [ ] pgvector 유사 패턴 검색 (Supabase Client)
 - [ ] 시스템 프롬프트 빌더 (`lib/ai/prompts.ts`)
-- [ ] GPT-4o 스트리밍 호출
-- [ ] Vercel AI SDK StreamingTextResponse
-- [ ] 메시지 자동 저장 (onCompletion)
+- [ ] GPT-4o 스트리밍 호출 (Vercel AI SDK `streamText`)
+- [ ] 메시지 자동 저장 (onFinish callback)
 
 ```typescript
 // src/app/api/chat/route.ts
+import { streamText } from 'ai'
+import { openai } from '@ai-sdk/openai'
+
 export const runtime = 'edge'
 
 export async function POST(req: Request) {
   // 1. 인증 확인
   // 2. 페르소나 로드
-  // 3. 임베딩 생성
-  // 4. 벡터 검색
+  // 3. 임베딩 생성 (embed)
+  // 4. 벡터 검색 (Supabase Client)
   // 5. 프롬프트 구성
-  // 6. 스트리밍
+  // 6. 스트리밍 (streamText)
 }
 ```
 

@@ -56,23 +56,28 @@ User → Social Provider (Google/GitHub/Discord)
 ```
 User Input
   ├─ MBTI 선택 (필수)
-  ├─ DiSC 선택 (필수)
+  ├─ DiSC 선택 (필수 - 16 표준 유형, 모두 대문자)
   └─ 애니어그램 선택 (필수)
        ↓
 Traits Combination
   ├─ MBTI → 인지 기능 특성
-  ├─ DiSC → 행동 스타일 특성
+  ├─ DiSC → 행동 스타일 특성 (D, I, S, C + 12 조합)
   └─ 애니어그램 → 핵심 동기
        ↓
 Profile Text Generation
   "ISTJ + CS + 1w2는 체계적이고 신중한 완벽주의자..."
        ↓
-OpenAI Embedding (1536d)
+Vercel AI SDK embed() - text-embedding-3-small (1536d)
   [0.123, -0.456, 0.789, ...]
        ↓
+Supabase Edge Function (Database Trigger 방식)
+  - INSERT/UPDATE 감지
+  - Vercel AI SDK로 embedding 생성
+  - profile_embedding 자동 저장
+       ↓
 Store in persona_profiles
-  - profile_embedding 저장
-  - traits JSONB 저장
+  - profile_embedding vector(1536)
+  - traits JSONB
 ```
 
 ### 3. 대화 흐름 (실시간 스트리밍)
@@ -80,15 +85,15 @@ Store in persona_profiles
 User Message
   "프로젝트 일정이 지연되고 있어요"
        ↓
-Create Embedding
-  OpenAI text-embedding-3-small
+Create Embedding (Vercel AI SDK)
+  embed({ model: openai.textEmbeddingModel('text-embedding-3-small'), value: text })
   → [0.234, -0.567, ...]
        ↓
-pgvector Similarity Search
+pgvector Similarity Search (Supabase Client)
   SELECT * FROM search_similar_patterns(
     embedding,
     'ISTJ',
-    'CS', 
+    'CS',
     '1w2',
     'superior'
   )
@@ -99,15 +104,14 @@ Build System Prompt
   - 관계 가이드 (상급자 → 정중함, 존댓말)
   - 유사 패턴 예시
        ↓
-OpenAI Streaming
+Streaming Response (Vercel AI SDK)
+  streamText({ model: openai('gpt-4o'), messages, ... })
   GPT-4o 실시간 응답
        ↓
-StreamingTextResponse
-  Vercel AI SDK
-       ↓
-UI Update (useChat)
+UI Update (useChat Hook)
   - 토큰 단위 스트리밍
   - 자동 메시지 저장
+  - 재시도 및 에러 처리 내장
 ```
 
 ## 🛠 기술 스택 선택 근거
@@ -137,11 +141,18 @@ UI Update (useChat)
 - Chakra UI: 번들 크기 크고 Tailwind와 충돌
 - Ant Design: 디자인 자유도 낮음
 
-#### Vercel AI SDK
+#### Vercel AI SDK (전체 AI 통합)
 **선택 이유**:
 - **useChat 훅**: 스트리밍 대화 3줄 구현
+- **embed/embedMany**: 벡터 생성 간편화
 - **OpenAI 네이티브 통합**: 추가 설정 불필요
 - **Edge Runtime 최적화**: 글로벌 저지연
+- **통합 API**: UI + Embedding + LLM 모두 하나의 SDK로 처리
+
+**⚠️ 중요**:
+- 별도의 OpenAI SDK 설치 불필요
+- `@ai-sdk/openai` 어댑터가 OpenAI API 호출 처리
+- 설치: `npm install ai @ai-sdk/openai`
 
 ### Backend
 
