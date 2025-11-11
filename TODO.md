@@ -160,24 +160,27 @@
 
 ---
 
-## 💬 Phase 4: 대화 엔진 (Day 4-6)
+## 💬 Phase 3: 대화 엔진 (Day 4-6)
 
 ### 대화 UI
-- [ ] 대화 페이지 (`app/chat/page.tsx`)
+- [x] 대화 페이지 (`app/chat/page.tsx`)
 - [ ] 페르소나 선택 모달
 - [ ] 관계 선택 (상급자/동료/하급자)
-- [ ] 메시지 입력 폼
-- [ ] 메시지 리스트 컴포넌트
-- [ ] 스트리밍 응답 표시
+- [x] 메시지 입력 폼
+- [x] 메시지 리스트 컴포넌트
+- [x] 스트리밍 응답 표시
+- [x] 스크롤 동작 최적화 (스트리밍 중/완료 후)
+- [x] 한글 입력(IME) 처리
+- [x] 입력 포커스 자동화
 
 ### 대화 API
-- [ ] `app/api/chat/route.ts` - 스트리밍 응답
-- [ ] Vercel AI SDK `useChat` 훅 활용
-- [ ] OpenAI GPT-4o 통합
-- [ ] 시스템 프롬프트 생성 로직
-  - 페르소나 특성 (MBTI + DiSC + 애니어그램)
-  - 관계별 가이드 (`data/relationship-guides.json`)
-  - 유사 패턴 검색 결과
+- [x] `app/api/chat/route.ts` - 스트리밍 응답
+- [x] Vercel AI SDK `useChat` 훅 활용
+- [x] OpenAI GPT-4o 통합
+- [x] 시스템 프롬프트 생성 로직
+  - [x] 페르소나 특성 (MBTI + DiSC + 애니어그램)
+  - [x] 관계별 가이드 (`data/relationship-guides.json`)
+  - [ ] 유사 패턴 검색 결과
 
 ### 벡터 검색
 - [ ] OpenAI 임베딩 생성
@@ -186,10 +189,20 @@
 - [ ] 계층적 폴백 (MBTI → DiSC → 애니어그램)
 
 ### 세션 관리
-- [ ] 대화 세션 생성
-- [ ] 메시지 저장
+- [x] 대화 세션 생성
+- [x] 메시지 저장 (user + assistant)
+- [x] React 클로저 문제 해결 (useRef)
+- [x] 대화 히스토리 로딩
 - [ ] 사용 통계 업데이트
-- [ ] 대화 히스토리 조회
+
+### 문서화
+- [x] 채팅 구현 가이드 작성
+  - [x] React 클로저 문제 해결 패턴
+  - [x] IME 처리 베스트 프랙티스
+  - [x] 메시지 저장 아키텍처
+  - [x] 스크롤 동작 최적화
+  - [x] 트러블슈팅 가이드
+- [x] CHANGELOG 업데이트
 
 ---
 

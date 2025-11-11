@@ -223,7 +223,7 @@ function PersonaCard({ persona }: { persona: Persona }) {
 
   const handleChatClick = (e: React.MouseEvent) => {
     e.stopPropagation()
-    router.push(`/chat?persona=${persona.id}`)
+    router.push(`/chat?personaId=${persona.id}`)
   }
 
   return (

@@ -1,0 +1,430 @@
+'use client';
+
+import { useEffect, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { createClient } from '@/lib/supabase/client';
+import { useState } from 'react';
+
+function ChatContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const personaId = searchParams.get('personaId');
+
+  const [persona, setPersona] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // sessionId를 ref로도 저장 (클로저 문제 해결)
+  const sessionIdRef = useRef<string | null>(null);
+
+  // useChat hook으로 대화 관리 - DefaultChatTransport 사용
+  const chat = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+    onFinish: async (result) => {
+      console.log('🚨🚨🚨 onFinish TRIGGERED! 🚨🚨🚨');
+      console.log('🔔 onFinish called:', {
+        role: result.message.role,
+        messageId: result.message.id,
+        hasParts: !!result.message.parts,
+        partsCount: result.message.parts?.length,
+        messageStructure: JSON.stringify(result.message, null, 2),
+      });
+
+      console.log('🔍 Session check:', {
+        hasSessionId: !!sessionIdRef.current,
+        sessionId: sessionIdRef.current,
+        isAssistant: result.message.role === 'assistant',
+        willSave: sessionIdRef.current && result.message.role === 'assistant',
+      });
+
+      // AI 응답이 완료되면 DB에 저장
+      if (sessionIdRef.current && result.message.role === 'assistant') {
+        try {
+          let content = '';
+
+          // parts 배열에서 텍스트 추출
+          if (result.message.parts && Array.isArray(result.message.parts)) {
+            const textParts = result.message.parts.filter((p: any) => p.type === 'text');
+
+            if (textParts.length === 0) {
+              console.warn('⚠️ No text parts found in assistant message');
+              console.warn('Parts structure:', result.message.parts);
+              return;
+            }
+
+            content = textParts.map((p: any) => p.text).join('');
+            console.log('✅ Extracted text from parts:', {
+              partsCount: textParts.length,
+              contentLength: content.length,
+              contentPreview: content.substring(0, 100) + '...',
+            });
+          } else {
+            console.error('❌ No parts array in message:', result.message);
+            return;
+          }
+
+          // 빈 내용이면 저장하지 않음
+          if (!content.trim()) {
+            console.warn('⚠️ Empty assistant message, skipping save');
+            return;
+          }
+
+          console.log('💾 Attempting to save assistant message to DB...', {
+            sessionId: sessionIdRef.current,
+            contentLength: content.length,
+          });
+
+          const response = await fetch('/api/chat/messages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              sessionId: sessionIdRef.current,
+              role: 'assistant',
+              content,
+            }),
+          });
+
+          if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Failed to save assistant message:', {
+              status: response.status,
+              statusText: response.statusText,
+              error: errorText,
+            });
+          } else {
+            const savedData = await response.json();
+            console.log('✅ Assistant message saved successfully:', savedData);
+          }
+        } catch (error) {
+          console.error('❌ Exception while saving assistant message:', error);
+        }
+      }
+
+      // 응답 완료 후 입력창에 포커스
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 100);
+    },
+    onError: (error) => {
+      console.error('Chat error:', error);
+    },
+  });
+
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: smooth ? 'smooth' : 'auto',
+      block: 'end'
+    });
+  };
+
+  // 메시지가 추가될 때마다 스크롤
+  useEffect(() => {
+    // 스트리밍 중이거나 메시지가 있을 때 스크롤
+    if (chat.messages.length > 0) {
+      const isStreaming = chat.status === 'streaming';
+      scrollToBottom(!isStreaming); // 스트리밍 중에는 즉시, 완료 후에는 부드럽게
+    }
+  }, [chat.messages.length, chat.status]);
+
+  useEffect(() => {
+    if (!personaId) {
+      router.push('/personas');
+      return;
+    }
+
+    const loadPersonaAndSession = async () => {
+      try {
+        const supabase = createClient();
+
+        // 1. 페르소나 정보 로드
+        const { data: personaData, error: personaError } = await supabase
+          .from('persona_profiles')
+          .select('*')
+          .eq('id', personaId)
+          .single();
+
+        if (personaError || !personaData) {
+          console.error('Failed to load persona:', personaError);
+          router.push('/personas');
+          return;
+        }
+
+        setPersona(personaData);
+
+        // 2. 기존 세션 조회 또는 생성
+        const { data: sessions } = await supabase
+          .from('chat_sessions')
+          .select('*')
+          .eq('persona_profile_id', personaId)
+          .eq('session_status', 'active')
+          .order('started_at', { ascending: false })
+          .limit(1);
+
+        let currentSessionId = sessions?.[0]?.id;
+
+        // 세션이 없으면 새로 생성
+        if (!currentSessionId) {
+          const { data: newSession, error: sessionError } = await supabase
+            .from('chat_sessions')
+            .insert({
+              persona_profile_id: personaId,
+              relationship_type: 'peer',
+              session_status: 'active',
+            })
+            .select()
+            .single();
+
+          if (sessionError) {
+            console.error('Failed to create session:', sessionError);
+          } else {
+            currentSessionId = newSession.id;
+          }
+        }
+
+        setSessionId(currentSessionId || null);
+        sessionIdRef.current = currentSessionId || null;
+
+        // 3. 세션의 기존 메시지 로드
+        if (currentSessionId) {
+          const { data: messages } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .eq('session_id', currentSessionId)
+            .order('created_at', { ascending: true });
+
+          if (messages && messages.length > 0) {
+            // UIMessage 형식으로 변환 (타입 단언 사용)
+            const uiMessages = messages.map((msg: any) => ({
+              id: msg.id,
+              role: msg.role,
+              parts: [{ type: 'text' as const, text: msg.content }],
+            })) as any[];
+
+            // useChat의 setMessages로 메시지 설정
+            chat.setMessages(uiMessages);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading persona and session:', err);
+        router.push('/personas');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPersonaAndSession();
+  }, [personaId, router]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    // IME 조합 중인지 확인 (한글, 일본어, 중국어 입력 중)
+    if ((e.nativeEvent as any).isComposing) {
+      return;
+    }
+
+    const form = e.currentTarget;
+    const formData = new FormData(form);
+    const userMessage = formData.get('message') as string;
+
+    if (!userMessage?.trim() || chat.status === 'streaming') return;
+
+    // 폼을 먼저 초기화 (비동기 작업 전에)
+    form.reset();
+
+    // 사용자 메시지 DB에 저장
+    if (sessionId) {
+      try {
+        await fetch('/api/chat/messages', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            sessionId,
+            role: 'user',
+            content: userMessage,
+          }),
+        });
+      } catch (error) {
+        console.error('Failed to save user message:', error);
+      }
+    }
+
+    // sendMessage로 메시지 전송 (text 형식 사용)
+    await chat.sendMessage({
+      text: userMessage,
+    }, {
+      body: { personaId },
+    });
+  };
+
+  if (loading || !persona) {
+    return (
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">
+          {loading ? '페르소나 정보를 불러오는 중...' : '페르소나를 찾을 수 없습니다.'}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="container mx-auto p-6 max-w-4xl">
+      {/* 페르소나 헤더 */}
+      <Card className="p-6 mb-6">
+        <div className="flex items-start gap-4">
+          <Avatar className="h-16 w-16">
+            <AvatarFallback className="text-2xl">
+              {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="flex items-center gap-2 mb-2">
+              <h1 className="text-2xl font-bold">{persona.persona_name || persona.name}</h1>
+              {persona.is_official && <Badge variant="default">공식</Badge>}
+            </div>
+            {persona.persona_description && (
+              <p className="text-muted-foreground mb-3">
+                {persona.persona_description}
+              </p>
+            )}
+            <div className="flex gap-2">
+              <Badge variant="outline">{persona.mbti}</Badge>
+              <Badge variant="outline">{persona.disc}</Badge>
+              <Badge variant="outline">유형 {persona.enneagram}</Badge>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      {/* 대화 영역 */}
+      <div className="bg-background border rounded-lg shadow-sm flex flex-col h-[600px]">
+        {/* 메시지 목록 */}
+        <div className="flex-1 overflow-y-auto p-6 space-y-4">
+          {chat.messages.length === 0 && (
+            <div className="text-center text-muted-foreground py-12">
+              <p className="text-lg mb-2">{persona.persona_name || persona.name}와 대화를 시작해보세요!</p>
+              <p className="text-sm">
+                이 페르소나는 {persona.mbti}, {persona.disc} 성향을 가지고 있습니다.
+              </p>
+            </div>
+          )}
+
+          {chat.messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              }`}
+            >
+              <div
+                className={`max-w-[80%] rounded-lg p-4 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                }`}
+              >
+                <div className="flex items-start gap-2">
+                  {message.role === 'assistant' && (
+                    <Avatar className="h-8 w-8">
+                      <AvatarFallback className="text-xs">
+                        {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
+                      </AvatarFallback>
+                    </Avatar>
+                  )}
+                  <div className="flex-1">
+                    <p className="text-sm font-medium mb-1">
+                      {message.role === 'user' ? '나' : (persona.persona_name || persona.name)}
+                    </p>
+                    <p className="whitespace-pre-wrap">
+                      {message.parts
+                        .filter((part) => part.type === 'text')
+                        .map((part) => part.text)
+                        .join('')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
+          {chat.status === 'streaming' && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] rounded-lg p-4 bg-muted">
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="text-xs">
+                      {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex gap-1">
+                    <span className="animate-bounce">●</span>
+                    <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>
+                      ●
+                    </span>
+                    <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
+                      ●
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {chat.error && (
+            <div className="text-center text-destructive p-4">
+              <p>오류가 발생했습니다: {chat.error.message}</p>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* 입력 폼 */}
+        <div className="border-t p-4">
+          <form onSubmit={handleSubmit} className="flex gap-2">
+            <Input
+              ref={inputRef}
+              name="message"
+              placeholder="메시지를 입력하세요..."
+              disabled={chat.status === 'streaming'}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={chat.status === 'streaming'}>
+              전송
+            </Button>
+          </form>
+        </div>
+      </div>
+
+      {/* 돌아가기 버튼 */}
+      <div className="mt-6 flex justify-center">
+        <Button variant="outline" onClick={() => router.push('/personas')}>
+          페르소나 목록으로
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto p-6 flex items-center justify-center min-h-screen">
+        <p className="text-muted-foreground">페이지를 불러오는 중...</p>
+      </div>
+    }>
+      <ChatContent />
+    </Suspense>
+  );
+}
