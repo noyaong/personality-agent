@@ -1,8 +1,8 @@
 # Personality Agent - 프로젝트 상태
 
-> 마지막 업데이트: 2025-11-11 (Phase 4 완료!)
-> 현재 Phase: Phase 4 - 대화 엔진 (100% 완료) ✅
-> 최근 작업: Vercel AI SDK 기반 실시간 스트리밍 대화 시스템 구현
+> 마지막 업데이트: 2025-11-12 (UI/UX 개선 완료!)
+> 현재 Phase: Phase 5 - UI/UX 개선 (90% 완료) ✅
+> 최근 작업: 라이트 모드 디자인 시스템 전환 + 페르소나 관리 페이지 통합 디자인
 
 ## 🎯 프로젝트 개요
 
@@ -265,9 +265,9 @@ RLS 필요      → Supabase Client (보안)
    - 한글 IME 입력 버그 수정 (value → defaultValue)
 
 **알려진 이슈**:
-- ⚠️ 페르소나 선택 버튼 다크 모드 가시성 문제 (해결 보류 - 기능은 정상 작동)
+- ✅ ~~페르소나 선택 버튼 다크 모드 가시성 문제~~ - 라이트 모드 전환으로 해결됨!
 
-### 6. 대화 엔진 시스템 (완료!) ✨ NEW!
+### 6. 대화 엔진 시스템 (완료!) ✅
 
 **Vercel AI SDK 통합**:
 ```
@@ -300,6 +300,47 @@ RLS 필요      → Supabase Client (보안)
   - DiSC: 행동 패턴, 페이스, 우선순위, 두려움
   - Enneagram: 핵심 동기, 핵심 두려움, Wing 특성
   - 5가지 대화 지침으로 일관성 유지
+```
+
+### 7. UI/UX 라이트 모드 디자인 시스템 (완료!) ✨ NEW!
+
+**디자인 컨셉**: 심리검사 서비스 정체성에 맞는 밝고 아기자기한 모던 디자인
+
+**색상 시스템 전환 (다크 → 라이트)**:
+```
+✅ 배경: hsl(210, 40%, 98%) - 부드러운 라이트 톤
+✅ Primary: hsl(280, 80%, 62%) - 활기찬 보라-핑크
+✅ Accent: hsl(173, 80%, 60%) - 밝은 민트-청록
+✅ Secondary: hsl(270, 60%, 95%) - 부드러운 라벤더
+```
+
+**Color Bends 배경 효과**:
+```
+✅ 보라와 청록색의 부드러운 그라데이션 블러
+✅ 애니메이션으로 움직이는 배경 (20초, 18초 주기)
+✅ 투명도 0.35로 은은한 느낌
+```
+
+**전체 페이지 라이트 모드 적용 완료**:
+```
+✅ globals.css - 색상 팔레트 및 유틸리티 클래스
+✅ page.tsx - 메인 로딩 화면
+✅ dashboard/page.tsx - 대시보드
+✅ chat/page.tsx - 채팅 페이지 (스켈레톤 UI 포함)
+✅ personas/page.tsx - 페르소나 목록
+✅ personas/new/page.tsx - 페르소나 생성
+✅ personas/[id]/page.tsx - 페르소나 상세
+✅ personas/[id]/edit/page.tsx - 페르소나 수정
+❌ login/page.tsx - 로그인 페이지 (미완료)
+```
+
+**새로운 디자인 패턴**:
+```
+✅ Glass 효과 헤더 (투명 + 블러)
+✅ 파스텔 그라데이션 카드
+✅ 호버 애니메이션 (scale, shadow)
+✅ 스켈레톤 로딩 UI
+✅ 그라데이션 버튼 및 배지
 ```
 
 ---
@@ -348,6 +389,18 @@ RLS 필요      → Supabase Client (보안)
   - Embedding 생성: Vercel AI SDK의 `embed` 함수 사용
   - 저장 전략: Supabase Edge Function에서 INSERT/UPDATE 시 자동 생성
   - 벡터 검색: Supabase Client로 pgvector 쿼리
+
+### Phase 5: UI/UX 개선 (Day 7) ✅ 90% 완료!
+- ✅ 라이트 모드 디자인 시스템 전환
+  - 다크 모드 → 라이트 모드 색상 팔레트
+  - Color Bends 배경 효과 (보라 ↔ 청록)
+  - Glass 효과 헤더 및 카드 디자인
+- ✅ 전체 페이지 디자인 통일
+  - 메인 로딩, 대시보드, 채팅, 페르소나 관리 (8개 페이지)
+- ✅ 스켈레톤 로딩 UI (채팅 페이지)
+- ✅ 파스텔 그라데이션 디자인 시스템
+- ❌ **로그인 페이지 라이트 모드 미완료**
+- ❌ **채팅 히스토리 페이지 (/history) 미구현**
 
 ---
 
@@ -537,7 +590,15 @@ Phase 4: ██████████ 100% ✅ 완료!
   ✅ 세션 및 메시지 저장
   ⬜ 벡터 검색 (Edge Function + embed) - 선택 사항
 
-전체: ██████████ 100% ✅ 핵심 기능 완성!
+Phase 5: █████████░ 90% ✅ 거의 완료!
+  ✅ 라이트 모드 디자인 시스템
+  ✅ 전체 페이지 디자인 통일 (8개 페이지)
+  ✅ Color Bends 배경 효과
+  ✅ 스켈레톤 로딩 UI
+  ❌ 로그인 페이지 라이트 모드
+  ❌ 채팅 히스토리 페이지
+
+전체: █████████░ 95% ✅ MVP 거의 완성!
 ```
 
 ---
@@ -573,12 +634,71 @@ Phase 4: ██████████ 100% ✅ 완료!
 ---
 
 **마지막 작업자**: Claude Code
-**마지막 완료**: Phase 4 (100%) - 대화 엔진 완성! (2025-11-11)
-**다음 작업**: 선택 사항 - 벡터 검색 기능 추가 또는 UI/UX 개선
+**마지막 완료**: Phase 5 (90%) - 라이트 모드 디자인 시스템 완성! (2025-11-12)
+**다음 작업**:
+1. 로그인 페이지 라이트 모드 적용
+2. 채팅 히스토리 페이지 (/history) 구현
+3. 벡터 검색 기능 (선택 사항)
 
 ---
 
 ## 📝 최근 변경사항
+
+### 2025-11-12 세션 (Phase 5 - UI/UX 개선!)
+
+#### 1. 라이트 모드 디자인 시스템 전환
+- ✅ **색상 팔레트 재설계** ([project/app/globals.css](project/app/globals.css))
+  - 다크 모드 → 라이트 모드 전환
+  - Primary: 보라-핑크 (hsl(280, 80%, 62%))
+  - Accent: 민트-청록 (hsl(173, 80%, 60%))
+  - 배경: 부드러운 라이트 톤 (hsl(210, 40%, 98%))
+
+- ✅ **Color Bends 배경 효과**
+  - 보라와 청록색의 그라데이션 블러
+  - 20초/18초 주기 애니메이션
+  - 투명도 0.35
+
+- ✅ **유틸리티 클래스 업데이트**
+  - `.gradient-bg`: 보라→청록 그라데이션
+  - `.gradient-text`: 텍스트 그라데이션
+  - `.glass`: 투명 화이트 + 블러
+  - `.card-hover`: 부드러운 호버 효과
+
+#### 2. 전체 페이지 라이트 모드 적용
+- ✅ **메인 로딩 화면** ([project/app/page.tsx](project/app/page.tsx))
+  - Color Bends 배경
+  - Primary 색상 스피너
+
+- ✅ **대시보드** ([project/app/(protected)/dashboard/page.tsx](project/app/(protected)/dashboard/page.tsx))
+  - Glass 효과 헤더
+  - 그라데이션 카드 (내 페르소나, 대화 시작, 대화 기록)
+  - 파스텔 그라데이션 계정 정보
+
+- ✅ **채팅 페이지** ([project/app/(protected)/chat/page.tsx](project/app/(protected)/chat/page.tsx))
+  - 스켈레톤 로딩 UI (3가지 패턴)
+  - 그라데이션 메시지 버블
+  - 파스텔 성격 유형 배지
+  - 그라데이션 입력 영역
+
+- ✅ **페르소나 관리 시스템** (4개 페이지)
+  - 목록 ([personas/page.tsx](project/app/(protected)/personas/page.tsx))
+  - 생성 ([personas/new/page.tsx](project/app/(protected)/personas/new/page.tsx))
+  - 상세 ([personas/[id]/page.tsx](project/app/(protected)/personas/[id]/page.tsx))
+  - 수정 ([personas/[id]/edit/page.tsx](project/app/(protected)/personas/[id]/edit/page.tsx))
+  - 모든 페이지 통일된 디자인 (Color Bends, Glass, 파스텔)
+
+#### 3. 디자인 일관성 확립
+- ✅ 배경: Color Bends 애니메이션 (보라 ↔ 청록)
+- ✅ 헤더: Glass 효과 + sticky + 그림자
+- ✅ 카드: 흰 배경/90 투명도 + 그림자 + 호버 효과
+- ✅ 배지: 파스텔 컬러 시스템 (보라/청록/핑크)
+- ✅ 버튼: 그라데이션 배경 + 그림자
+- ✅ 이모지: 공개 설정 아이콘 (🔒 🔗 🌍)
+
+#### 4. 버그 수정 및 개선
+- ✅ 다크 모드 버튼 가시성 문제 → 라이트 모드 전환으로 해결
+- ✅ 메시지 로딩 스켈레톤 UI 추가
+- ✅ 자동 스크롤 개선 (메시지 로드 후)
 
 ### 2025-11-11 세션 오후 (Phase 4 완료!)
 

@@ -120,9 +120,9 @@ export default function NewPersonaPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 animate-fade-in">
+    <div className="min-h-screen color-bends-bg animate-fade-in">
       {/* 헤더 */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b glass sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -139,14 +139,14 @@ export default function NewPersonaPage() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl relative z-10">
         {error && (
           <div className="mb-6 rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive animate-slide-up">
             {error}
           </div>
         )}
 
-        <Card className="border-2">
+        <Card className="border-2 shadow-lg bg-white/90">
           <CardHeader>
             <CardTitle>페르소나 프로필 설정</CardTitle>
             <CardDescription>
@@ -237,7 +237,7 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, mbti: type })}
-                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 transition-all ${
                             formData.mbti === type
                               ? 'persona-btn-selected'
                               : 'persona-btn'
@@ -253,9 +253,9 @@ export default function NewPersonaPage() {
                   </div>
 
                   {formData.mbti && psychologyProfiles.mbti[formData.mbti] && (
-                    <Card className="bg-primary/5 border-primary/20">
+                    <Card className="bg-gradient-to-br from-purple-50/50 to-purple-100/30 border-purple-200 shadow-sm">
                       <CardContent className="pt-6">
-                        <h3 className="font-bold text-lg mb-2">
+                        <h3 className="font-bold text-lg mb-2 gradient-text">
                           {psychologyProfiles.mbti[formData.mbti].name}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
@@ -263,7 +263,7 @@ export default function NewPersonaPage() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {psychologyProfiles.mbti[formData.mbti].traits.map((trait: string) => (
-                            <Badge key={trait} variant="secondary">
+                            <Badge key={trait} variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">
                               {trait}
                             </Badge>
                           ))}
@@ -305,7 +305,7 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, disc: type })}
-                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-left hover:scale-105 transition-all ${
                             formData.disc === type
                               ? 'persona-btn-selected'
                               : 'persona-btn'
@@ -321,9 +321,9 @@ export default function NewPersonaPage() {
                   </div>
 
                   {formData.disc && psychologyProfiles.disc[formData.disc] && (
-                    <Card className="bg-primary/5 border-primary/20">
+                    <Card className="bg-gradient-to-br from-cyan-50/50 to-cyan-100/30 border-cyan-200 shadow-sm">
                       <CardContent className="pt-6">
-                        <h3 className="font-bold text-lg mb-2">
+                        <h3 className="font-bold text-lg mb-2 gradient-text">
                           {psychologyProfiles.disc[formData.disc].name}
                         </h3>
                         <p className="text-sm text-muted-foreground mb-3">
@@ -331,7 +331,7 @@ export default function NewPersonaPage() {
                         </p>
                         <div className="flex flex-wrap gap-2">
                           {psychologyProfiles.disc[formData.disc].traits.map((trait: string) => (
-                            <Badge key={trait} variant="secondary">
+                            <Badge key={trait} variant="secondary" className="bg-cyan-50 text-cyan-700 border-cyan-200">
                               {trait}
                             </Badge>
                           ))}
@@ -373,7 +373,7 @@ export default function NewPersonaPage() {
                           key={type}
                           type="button"
                           onClick={() => setFormData({ ...formData, enneagram: type, enneagramWing: '' })}
-                          className={`p-4 rounded-lg border-2 text-center hover:scale-105 ${
+                          className={`p-4 rounded-lg border-2 text-center hover:scale-105 transition-all ${
                             formData.enneagram === type
                               ? 'persona-btn-selected'
                               : 'persona-btn'
@@ -389,10 +389,10 @@ export default function NewPersonaPage() {
                   </div>
 
                   {formData.enneagram && psychologyProfiles.enneagram[formData.enneagram] && (
-                    <Card className="bg-primary/5 border-primary/20">
+                    <Card className="bg-gradient-to-br from-pink-50/50 to-pink-100/30 border-pink-200 shadow-sm">
                       <CardContent className="pt-6 space-y-4">
                         <div>
-                          <h3 className="font-bold text-lg mb-2">
+                          <h3 className="font-bold text-lg mb-2 gradient-text">
                             유형 {formData.enneagram}: {psychologyProfiles.enneagram[formData.enneagram].name}
                           </h3>
                           <div className="space-y-2 text-sm">
@@ -407,7 +407,7 @@ export default function NewPersonaPage() {
                           </div>
                           <div className="flex flex-wrap gap-2 mt-3">
                             {psychologyProfiles.enneagram[formData.enneagram].traits.map((trait: string) => (
-                              <Badge key={trait} variant="secondary">
+                              <Badge key={trait} variant="secondary" className="bg-pink-50 text-pink-700 border-pink-200">
                                 {trait}
                               </Badge>
                             ))}
@@ -453,7 +453,7 @@ export default function NewPersonaPage() {
                   <Button
                     onClick={handleSubmit}
                     disabled={!formData.enneagram || loading}
-                    className="flex-1 gradient-bg"
+                    className="flex-1 gradient-bg text-white shadow-md hover:shadow-lg"
                   >
                     {loading ? '생성 중...' : '페르소나 생성'}
                   </Button>
@@ -465,42 +465,42 @@ export default function NewPersonaPage() {
 
         {/* 요약 카드 */}
         {formData.name && (
-          <Card className="mt-6 border-2 bg-gradient-to-br from-card to-accent/5">
+          <Card className="mt-6 border-2 bg-gradient-to-br from-white/90 to-accent/10 shadow-lg">
             <CardHeader>
-              <CardTitle className="text-lg">선택한 프로필 요약</CardTitle>
+              <CardTitle className="text-lg gradient-text">선택한 프로필 요약</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">이름</span>
-                <span className="font-medium">{formData.name}</span>
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50/30 to-purple-100/20">
+                <span className="text-sm text-muted-foreground font-medium">이름</span>
+                <span className="font-semibold">{formData.name}</span>
               </div>
               {formData.mbti && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">MBTI</span>
-                  <Badge>{formData.mbti}</Badge>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-50/30 to-purple-100/20">
+                  <span className="text-sm text-muted-foreground font-medium">MBTI</span>
+                  <Badge className="bg-purple-50 text-purple-700 border-purple-200 shadow-sm">{formData.mbti}</Badge>
                 </div>
               )}
               {formData.disc && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">DiSC</span>
-                  <Badge>{formData.disc}</Badge>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-cyan-50/30 to-cyan-100/20">
+                  <span className="text-sm text-muted-foreground font-medium">DiSC</span>
+                  <Badge className="bg-cyan-50 text-cyan-700 border-cyan-200 shadow-sm">{formData.disc}</Badge>
                 </div>
               )}
               {formData.enneagram && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">애니어그램</span>
-                  <Badge>
+                <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-pink-50/30 to-pink-100/20">
+                  <span className="text-sm text-muted-foreground font-medium">애니어그램</span>
+                  <Badge className="bg-pink-50 text-pink-700 border-pink-200 shadow-sm">
                     {formData.enneagram}
                     {formData.enneagramWing && ` ${formData.enneagramWing}`}
                   </Badge>
                 </div>
               )}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">공개 설정</span>
-                <Badge variant="outline">
-                  {formData.visibility === 'private' && '비공개'}
-                  {formData.visibility === 'unlisted' && '링크 공유'}
-                  {formData.visibility === 'public' && '공개'}
+              <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-indigo-50/30 to-indigo-100/20">
+                <span className="text-sm text-muted-foreground font-medium">공개 설정</span>
+                <Badge variant="outline" className="bg-white shadow-sm">
+                  {formData.visibility === 'private' && '🔒 비공개'}
+                  {formData.visibility === 'unlisted' && '🔗 링크 공유'}
+                  {formData.visibility === 'public' && '🌍 공개'}
                 </Badge>
               </div>
             </CardContent>

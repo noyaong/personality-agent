@@ -164,10 +164,10 @@ export default function PersonaDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
+      <div className="flex min-h-screen items-center justify-center color-bends-bg">
+        <div className="text-center space-y-4 relative z-10">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground font-medium">로딩 중...</p>
         </div>
       </div>
     )
@@ -175,8 +175,8 @@ export default function PersonaDetailPage() {
 
   if (error || !persona) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
-        <header className="border-b bg-card/50 backdrop-blur-sm">
+      <div className="min-h-screen color-bends-bg">
+        <header className="border-b glass shadow-sm">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex h-16 items-center">
               <Button variant="ghost" onClick={() => router.push('/personas')}>
@@ -185,13 +185,13 @@ export default function PersonaDetailPage() {
             </div>
           </div>
         </header>
-        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <Card className="border-2 border-destructive/20">
+        <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+          <Card className="border-2 border-destructive/20 bg-white/90 shadow-lg">
             <CardContent className="flex flex-col items-center justify-center py-16">
               <div className="text-6xl mb-4">⚠️</div>
               <h3 className="text-xl font-bold mb-2 text-destructive">오류 발생</h3>
               <p className="text-muted-foreground mb-6">{error || '페르소나를 찾을 수 없습니다'}</p>
-              <Button onClick={() => router.push('/personas')}>페르소나 목록으로</Button>
+              <Button onClick={() => router.push('/personas')} className="gradient-bg text-white shadow-md hover:shadow-lg">페르소나 목록으로</Button>
             </CardContent>
           </Card>
         </main>
@@ -200,9 +200,9 @@ export default function PersonaDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5">
+    <div className="min-h-screen color-bends-bg">
       {/* 헤더 */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b glass sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Button variant="ghost" onClick={() => router.push('/personas')}>
@@ -238,18 +238,18 @@ export default function PersonaDetailPage() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl relative z-10">
         <div className="space-y-6">
           {/* 기본 정보 카드 */}
-          <Card>
+          <Card className="shadow-lg bg-white/90 border-2">
             <CardHeader>
               <div className="flex items-start justify-between mb-2">
-                <CardTitle className="text-2xl">{persona.personaName}</CardTitle>
+                <CardTitle className="text-2xl gradient-text">{persona.personaName}</CardTitle>
                 <div className="flex gap-2">
-                  {persona.isOfficial && <Badge className="gradient-bg">공식</Badge>}
+                  {persona.isOfficial && <Badge className="gradient-bg text-white shadow-md">공식</Badge>}
                   <Badge
                     variant="outline"
-                    className={isOwner ? 'cursor-pointer hover:bg-accent' : ''}
+                    className={`bg-white shadow-sm ${isOwner ? 'cursor-pointer hover:bg-accent' : ''}`}
                     onClick={isOwner ? () => setShowVisibilityDialog(true) : undefined}
                   >
                     {persona.visibility === 'private' && '🔒 비공개'}
@@ -269,16 +269,16 @@ export default function PersonaDetailPage() {
               <div>
                 <h3 className="text-sm font-semibold mb-3">심리 프로필</h3>
                 <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary" className="text-base px-4 py-2">
+                  <Badge variant="secondary" className="text-base px-4 py-2 bg-purple-50 text-purple-700 border-purple-200 shadow-sm">
                     MBTI: {persona.mbti}
                   </Badge>
                   {persona.disc && (
-                    <Badge variant="secondary" className="text-base px-4 py-2">
+                    <Badge variant="secondary" className="text-base px-4 py-2 bg-cyan-50 text-cyan-700 border-cyan-200 shadow-sm">
                       DiSC: {persona.disc}
                     </Badge>
                   )}
                   {persona.enneagram && (
-                    <Badge variant="secondary" className="text-base px-4 py-2">
+                    <Badge variant="secondary" className="text-base px-4 py-2 bg-pink-50 text-pink-700 border-pink-200 shadow-sm">
                       Enneagram: {persona.enneagram}
                     </Badge>
                   )}
@@ -303,7 +303,7 @@ export default function PersonaDetailPage() {
 
               {/* 대화 시작 버튼 */}
               <Button
-                className="w-full gradient-bg text-lg py-6"
+                className="w-full gradient-bg text-white text-lg py-6 shadow-md hover:shadow-lg"
                 onClick={() => router.push(`/chat?persona=${persona.id}`)}
               >
                 💬 이 페르소나와 대화 시작하기
@@ -312,7 +312,7 @@ export default function PersonaDetailPage() {
           </Card>
 
           {/* 설명 카드 */}
-          <Card>
+          <Card className="shadow-lg bg-white/90 border-2">
             <CardHeader>
               <CardTitle>이 페르소나는...</CardTitle>
             </CardHeader>

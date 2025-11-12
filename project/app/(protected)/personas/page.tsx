@@ -75,19 +75,19 @@ export default function PersonasPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
+      <div className="flex min-h-screen items-center justify-center color-bends-bg">
+        <div className="text-center space-y-4 relative z-10">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground font-medium">로딩 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 animate-fade-in">
+    <div className="min-h-screen color-bends-bg animate-fade-in">
       {/* 헤더 */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b glass sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -96,7 +96,7 @@ export default function PersonasPage() {
               </Button>
               <h1 className="text-xl font-bold gradient-text">페르소나 관리</h1>
             </div>
-            <Button onClick={() => router.push('/personas/new')} className="gradient-bg">
+            <Button onClick={() => router.push('/personas/new')} className="gradient-bg text-white shadow-md hover:shadow-lg">
               + 새 페르소나
             </Button>
           </div>
@@ -104,7 +104,7 @@ export default function PersonasPage() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
         {error && (
           <div className="mb-6 rounded-lg bg-destructive/10 border border-destructive/20 p-4 text-sm text-destructive">
             {error}
@@ -143,14 +143,14 @@ export default function PersonasPage() {
           {/* 내 페르소나 */}
           <TabsContent value="my" className="space-y-4">
             {myPersonas.length === 0 ? (
-              <Card className="border-2 border-dashed">
+              <Card className="border-2 border-dashed bg-white/90 shadow-sm">
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <div className="text-6xl mb-4">🎭</div>
                   <h3 className="text-xl font-bold mb-2">아직 페르소나가 없습니다</h3>
                   <p className="text-muted-foreground mb-6 text-center">
                     첫 번째 페르소나를 만들어 AI와 대화를 시작해보세요
                   </p>
-                  <Button onClick={() => router.push('/personas/new')} className="gradient-bg">
+                  <Button onClick={() => router.push('/personas/new')} className="gradient-bg text-white shadow-md hover:shadow-lg">
                     + 첫 페르소나 만들기
                   </Button>
                 </CardContent>
@@ -167,7 +167,7 @@ export default function PersonasPage() {
           {/* 공개 페르소나 */}
           <TabsContent value="public" className="space-y-4">
             {publicPersonas.length === 0 ? (
-              <Card className="border-2 border-dashed">
+              <Card className="border-2 border-dashed bg-white/90 shadow-sm">
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <div className="text-6xl mb-4">🌍</div>
                   <h3 className="text-xl font-bold mb-2">공개 페르소나가 없습니다</h3>
@@ -188,7 +188,7 @@ export default function PersonasPage() {
           {/* 공식 페르소나 */}
           <TabsContent value="official" className="space-y-4">
             {officialPersonas.length === 0 ? (
-              <Card className="border-2 border-dashed">
+              <Card className="border-2 border-dashed bg-white/90 shadow-sm">
                 <CardContent className="flex flex-col items-center justify-center py-16">
                   <div className="text-6xl mb-4">⭐</div>
                   <h3 className="text-xl font-bold mb-2">공식 페르소나가 없습니다</h3>
@@ -227,12 +227,12 @@ function PersonaCard({ persona }: { persona: Persona }) {
   }
 
   return (
-    <Card className="card-hover border-2 group cursor-pointer" onClick={handleCardClick}>
+    <Card className="card-hover border-2 group cursor-pointer shadow-sm hover:shadow-lg bg-white/90" onClick={handleCardClick}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between mb-2">
-          <CardTitle className="text-lg">{persona.personaName}</CardTitle>
+          <CardTitle className="text-lg gradient-text">{persona.personaName}</CardTitle>
           {persona.isOfficial && (
-            <Badge className="gradient-bg">공식</Badge>
+            <Badge className="gradient-bg text-white shadow-md">공식</Badge>
           )}
         </div>
         {persona.personaDescription && (
@@ -243,25 +243,25 @@ function PersonaCard({ persona }: { persona: Persona }) {
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">{persona.mbti}</Badge>
-          {persona.disc && <Badge variant="secondary">{persona.disc}</Badge>}
-          {persona.enneagram && <Badge variant="secondary">{persona.enneagram}</Badge>}
+          <Badge variant="secondary" className="bg-purple-50 text-purple-700 border-purple-200">{persona.mbti}</Badge>
+          {persona.disc && <Badge variant="secondary" className="bg-cyan-50 text-cyan-700 border-cyan-200">{persona.disc}</Badge>}
+          {persona.enneagram && <Badge variant="secondary" className="bg-pink-50 text-pink-700 border-pink-200">{persona.enneagram}</Badge>}
         </div>
 
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t">
           <div className="flex items-center gap-4">
             <span>💬 {persona.creatorUsageCount + persona.publicUsageCount}회</span>
           </div>
-          <Badge variant="outline" className="text-xs">
-            {persona.visibility === 'private' && '비공개'}
-            {persona.visibility === 'unlisted' && '링크 공유'}
-            {persona.visibility === 'public' && '공개'}
+          <Badge variant="outline" className="text-xs bg-white shadow-sm">
+            {persona.visibility === 'private' && '🔒 비공개'}
+            {persona.visibility === 'unlisted' && '🔗 링크'}
+            {persona.visibility === 'public' && '🌍 공개'}
           </Badge>
         </div>
 
         <Button
           variant="outline"
-          className="w-full"
+          className="w-full hover:bg-gradient-to-r hover:from-purple-50 hover:to-cyan-50 hover:border-primary/50 transition-all"
           size="sm"
           onClick={handleChatClick}
         >

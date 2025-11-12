@@ -1,43 +1,43 @@
 @import "tailwindcss";
 
-/* Personality Persona - 다크 모드 디자인 시스템 */
+/* Personality Persona - 라이트 모던 디자인 시스템 */
 :root {
-  /* 배경: 깊은 다크 톤 */
-  --background: 270 20% 8%;
-  --foreground: 0 0% 98%;
+  /* 배경: 부드러운 라이트 톤 */
+  --background: 210 40% 98%;
+  --foreground: 222 47% 11%;
 
-  /* 카드: 어두운 보라 톤 */
-  --card: 270 15% 12%;
-  --card-foreground: 0 0% 98%;
+  /* 카드: 밝은 화이트 */
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
 
   /* 팝오버 */
-  --popover: 270 15% 12%;
-  --popover-foreground: 0 0% 98%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
 
-  /* Primary: 밝은 보라 */
-  --primary: 266 85% 68%;
+  /* Primary: 활기찬 보라-핑크 */
+  --primary: 280 80% 62%;
   --primary-foreground: 0 0% 100%;
 
-  /* Secondary */
-  --secondary: 270 20% 20%;
-  --secondary-foreground: 270 80% 90%;
+  /* Secondary: 부드러운 라벤더 */
+  --secondary: 270 60% 95%;
+  --secondary-foreground: 270 70% 25%;
 
-  /* Muted */
-  --muted: 240 10% 18%;
-  --muted-foreground: 240 10% 75%;
+  /* Muted: 연한 그레이 */
+  --muted: 210 30% 93%;
+  --muted-foreground: 215 16% 47%;
 
-  /* Accent: 밝은 청록색 */
-  --accent: 180 60% 55%;
-  --accent-foreground: 270 20% 10%;
+  /* Accent: 밝은 민트-청록 */
+  --accent: 173 80% 60%;
+  --accent-foreground: 0 0% 100%;
 
-  /* Destructive */
-  --destructive: 0 70% 55%;
+  /* Destructive: 산호색 */
+  --destructive: 0 80% 63%;
   --destructive-foreground: 0 0% 100%;
 
   /* Border & Input */
-  --border: 270 15% 25%;
-  --input: 270 15% 25%;
-  --ring: 270 70% 65%;
+  --border: 220 13% 88%;
+  --input: 220 13% 88%;
+  --ring: 280 80% 62%;
 
   /* Radius: 부드러운 곡선 */
   --radius: 0.75rem;
@@ -106,16 +106,16 @@
   .gradient-bg {
     background: linear-gradient(
       135deg,
-      hsl(270, 80%, 70%) 0%,
-      hsl(180, 70%, 60%) 100%
+      hsl(280, 80%, 62%) 0%,
+      hsl(173, 80%, 60%) 100%
     );
   }
 
   .gradient-text {
     background: linear-gradient(
       135deg,
-      hsl(270, 80%, 75%) 0%,
-      hsl(180, 70%, 65%) 100%
+      hsl(280, 80%, 55%) 0%,
+      hsl(173, 80%, 50%) 100%
     );
     -webkit-background-clip: text;
     background-clip: text;
@@ -128,28 +128,23 @@
   }
 
   .card-hover:hover {
-    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.08);
     transform: translateY(-0.25rem);
   }
 
   /* 글래스모피즘 효과 */
   .glass {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .glass {
-      background: rgba(0, 0, 0, 0.4);
-    }
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
 
   /* 패턴 배경 */
   .pattern-dots {
     background-image: radial-gradient(
       circle at 1px 1px,
-      hsl(270, 60%, 55%, 0.15) 1px,
+      hsl(280, 70%, 75%, 0.3) 1px,
       transparent 0
     );
     background-size: 40px 40px;
@@ -157,33 +152,34 @@
 
   .pattern-grid {
     background-image: linear-gradient(
-        hsl(270, 60%, 55%, 0.05) 1px,
+        hsl(280, 70%, 75%, 0.15) 1px,
         transparent 1px
       ),
-      linear-gradient(90deg, hsl(270, 60%, 55%, 0.05) 1px, transparent 1px);
+      linear-gradient(90deg, hsl(280, 70%, 75%, 0.15) 1px, transparent 1px);
     background-size: 50px 50px;
   }
 
   /* 페르소나 선택 버튼 스타일 */
   .persona-btn {
-    background-color: #2d3748 !important;
-    border-color: #718096 !important;
-    color: #e2e8f0 !important;
+    background-color: #ffffff !important;
+    border-color: hsl(280, 70%, 75%) !important;
+    color: hsl(222, 47%, 11%) !important;
     transition: all 0.2s ease !important;
   }
 
   .persona-btn:hover {
-    border-color: #a78bfa !important;
-    background-color: rgba(167, 139, 250, 0.15) !important;
+    border-color: hsl(280, 80%, 62%) !important;
+    background-color: hsl(280, 80%, 98%) !important;
     transform: translateY(-2px) !important;
   }
 
   .persona-btn-selected {
-    border-color: #a78bfa !important;
-    background-color: rgba(167, 139, 250, 0.4) !important;
-    box-shadow: 0 10px 20px -3px rgba(167, 139, 250, 0.3),
-                0 0 0 1px rgba(167, 139, 250, 0.1) !important;
-    color: #ffffff !important;
+    border-color: hsl(280, 80%, 62%) !important;
+    background-color: hsl(280, 80%, 95%) !important;
+    box-shadow: 0 10px 20px -3px hsl(280, 80%, 62%, 0.3),
+                0 0 0 2px hsl(280, 80%, 62%, 0.2) !important;
+    color: hsl(280, 80%, 35%) !important;
+    font-weight: 600 !important;
   }
 
   /* 그라데이션 오버레이 배경 */
@@ -200,23 +196,23 @@
     bottom: 0;
     background: radial-gradient(
       ellipse at top left,
-      hsl(270, 60%, 55%, 0.1) 0%,
+      hsl(280, 70%, 85%, 0.4) 0%,
       transparent 50%
     ),
     radial-gradient(
       ellipse at bottom right,
-      hsl(180, 60%, 50%, 0.1) 0%,
+      hsl(173, 70%, 85%, 0.4) 0%,
       transparent 50%
     );
     pointer-events: none;
     z-index: -1;
   }
 
-  /* Color Bends 스타일 배경 - Dark Mode */
+  /* Color Bends 스타일 배경 - Light Mode */
   .color-bends-bg {
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, #0a0414 0%, #0d1420 100%);
+    background: linear-gradient(135deg, #faf9fd 0%, #f0f9ff 100%);
   }
 
   .color-bends-bg::before,
@@ -224,8 +220,8 @@
     content: "";
     position: fixed;
     border-radius: 50%;
-    filter: blur(100px);
-    opacity: 0.4;
+    filter: blur(120px);
+    opacity: 0.35;
     pointer-events: none;
     z-index: 0;
   }
@@ -235,7 +231,7 @@
     height: 700px;
     top: -350px;
     left: -250px;
-    background: radial-gradient(circle, #a78bfa 0%, #7c3aed 35%, transparent 65%);
+    background: radial-gradient(circle, hsl(280, 80%, 75%) 0%, hsl(280, 80%, 85%) 35%, transparent 65%);
     animation: float1 20s ease-in-out infinite;
   }
 
@@ -244,7 +240,7 @@
     height: 600px;
     bottom: -250px;
     right: -200px;
-    background: radial-gradient(circle, #22d3ee 0%, #0891b2 35%, transparent 65%);
+    background: radial-gradient(circle, hsl(173, 80%, 70%) 0%, hsl(173, 80%, 85%) 35%, transparent 65%);
     animation: float2 18s ease-in-out infinite reverse;
   }
 

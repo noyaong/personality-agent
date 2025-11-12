@@ -21,19 +21,19 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <div className="text-center space-y-4">
+      <div className="flex min-h-screen items-center justify-center color-bends-bg">
+        <div className="text-center space-y-4 relative z-10">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-muted-foreground">로딩 중...</p>
+          <p className="text-muted-foreground font-medium">로딩 중...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 animate-fade-in">
+    <div className="min-h-screen color-bends-bg animate-fade-in">
       {/* 헤더 */}
-      <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b glass sticky top-0 z-10 shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-3">
@@ -50,7 +50,7 @@ export default function DashboardPage() {
       </header>
 
       {/* 메인 컨텐츠 */}
-      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-slide-up">
+      <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 animate-slide-up relative z-10">
         {/* 웰컴 섹션 */}
         <div className="mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold mb-3">
@@ -64,10 +64,10 @@ export default function DashboardPage() {
         {/* 메인 기능 카드 */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
           {/* 내 페르소나 */}
-          <Card className="card-hover border-2 group cursor-pointer" onClick={() => router.push('/personas')}>
+          <Card className="card-hover border-2 group cursor-pointer shadow-sm hover:shadow-lg bg-white/90" onClick={() => router.push('/personas')}>
             <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-                <span className="text-2xl">🎭</span>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-100 to-purple-200 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">🎭</span>
               </div>
               <CardTitle className="text-xl">내 페르소나</CardTitle>
               <CardDescription>
@@ -76,17 +76,17 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">관리하기</span>
-                <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+                <span className="text-sm text-muted-foreground font-medium">관리하기</span>
+                <span className="text-primary group-hover:translate-x-1 transition-transform text-lg">→</span>
               </div>
             </CardContent>
           </Card>
 
           {/* 대화 시작 */}
-          <Card className="card-hover border-2 group cursor-pointer bg-gradient-to-br from-card to-primary/5" onClick={() => router.push('/chat')}>
+          <Card className="card-hover border-2 group cursor-pointer shadow-sm hover:shadow-lg bg-gradient-to-br from-white/90 to-accent/10" onClick={() => router.push('/chat')}>
             <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-                <span className="text-2xl">💬</span>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-cyan-100 to-teal-200 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">💬</span>
               </div>
               <CardTitle className="text-xl">대화 시작</CardTitle>
               <CardDescription>
@@ -95,17 +95,17 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <Badge className="gradient-bg">인기</Badge>
-                <span className="text-accent group-hover:translate-x-1 transition-transform">→</span>
+                <Badge className="gradient-bg text-white shadow-md">인기</Badge>
+                <span className="text-accent group-hover:translate-x-1 transition-transform text-lg">→</span>
               </div>
             </CardContent>
           </Card>
 
           {/* 대화 기록 */}
-          <Card className="card-hover border-2 group cursor-pointer" onClick={() => router.push('/history')}>
+          <Card className="card-hover border-2 group cursor-pointer shadow-sm hover:shadow-lg bg-white/90" onClick={() => router.push('/history')}>
             <CardHeader className="pb-4">
-              <div className="w-12 h-12 rounded-full bg-secondary/50 flex items-center justify-center mb-4 group-hover:bg-secondary transition-colors">
-                <span className="text-2xl">📚</span>
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-100 to-rose-200 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <span className="text-3xl">📚</span>
               </div>
               <CardTitle className="text-xl">대화 기록</CardTitle>
               <CardDescription>
@@ -114,8 +114,8 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">기록 보기</span>
-                <span className="text-primary group-hover:translate-x-1 transition-transform">→</span>
+                <span className="text-sm text-muted-foreground font-medium">기록 보기</span>
+                <span className="text-primary group-hover:translate-x-1 transition-transform text-lg">→</span>
               </div>
             </CardContent>
           </Card>
@@ -124,26 +124,26 @@ export default function DashboardPage() {
         {/* 통계 및 정보 섹션 */}
         <div className="grid gap-6 lg:grid-cols-2">
           {/* 계정 정보 */}
-          <Card className="border-2">
+          <Card className="border-2 shadow-sm bg-white/90">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span>👤</span>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <span className="text-2xl">👤</span>
                 계정 정보
               </CardTitle>
               <CardDescription>현재 계정 정보 및 설정</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors">
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-purple-50 to-purple-100/50 hover:from-purple-100 hover:to-purple-100 transition-all">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">이메일</p>
-                  <p className="font-medium">{user?.email}</p>
+                  <p className="text-xs text-muted-foreground mb-1 font-medium">이메일</p>
+                  <p className="font-semibold text-sm">{user?.email}</p>
                 </div>
-                <Badge variant="outline">인증됨</Badge>
+                <Badge variant="outline" className="bg-white shadow-sm">인증됨</Badge>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-cyan-50 to-cyan-100/50 hover:from-cyan-100 hover:to-cyan-100 transition-all">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">가입일</p>
-                  <p className="font-medium">
+                  <p className="text-xs text-muted-foreground mb-1 font-medium">가입일</p>
+                  <p className="font-semibold text-sm">
                     {user?.created_at ? new Date(user.created_at).toLocaleDateString('ko-KR', {
                       year: 'numeric',
                       month: 'long',
@@ -152,10 +152,10 @@ export default function DashboardPage() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/20 hover:bg-secondary/30 transition-colors">
+              <div className="flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-pink-50 to-pink-100/50 hover:from-pink-100 hover:to-pink-100 transition-all">
                 <div>
-                  <p className="text-sm text-muted-foreground mb-1">사용자 ID</p>
-                  <p className="font-mono text-xs text-muted-foreground">
+                  <p className="text-xs text-muted-foreground mb-1 font-medium">사용자 ID</p>
+                  <p className="font-mono text-xs text-muted-foreground font-semibold">
                     {user?.id.slice(0, 8)}...
                   </p>
                 </div>
@@ -164,44 +164,44 @@ export default function DashboardPage() {
           </Card>
 
           {/* 시작하기 가이드 */}
-          <Card className="border-2 bg-gradient-to-br from-card to-accent/5">
+          <Card className="border-2 shadow-sm bg-gradient-to-br from-white/90 to-indigo-50/50">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <span>🚀</span>
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <span className="text-2xl">🚀</span>
                 시작하기
               </CardTitle>
               <CardDescription>Personality Agent 활용 가이드</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/10 transition-colors">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
+              <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-purple-50 hover:to-purple-100/30 transition-all cursor-pointer">
+                <div className="w-7 h-7 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-md">
                   1
                 </div>
                 <div>
-                  <p className="font-medium mb-1">페르소나 생성</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-semibold mb-1 text-sm">페르소나 생성</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     MBTI, DiSC, 애니어그램으로 나만의 페르소나 만들기
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/10 transition-colors">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
+              <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-cyan-50 hover:to-cyan-100/30 transition-all cursor-pointer">
+                <div className="w-7 h-7 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-md">
                   2
                 </div>
                 <div>
-                  <p className="font-medium mb-1">대화 시작</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-semibold mb-1 text-sm">대화 시작</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     AI 페르소나와 실시간으로 대화하며 감정 교류하기
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 p-3 rounded-lg hover:bg-accent/10 transition-colors">
-                <div className="w-6 h-6 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5">
+              <div className="flex items-start gap-3 p-3 rounded-xl hover:bg-gradient-to-r hover:from-pink-50 hover:to-pink-100/30 transition-all cursor-pointer">
+                <div className="w-7 h-7 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-0.5 shadow-md">
                   3
                 </div>
                 <div>
-                  <p className="font-medium mb-1">대화 분석</p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="font-semibold mb-1 text-sm">대화 분석</p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
                     대화 기록을 통해 페르소나 이해도 높이기
                   </p>
                 </div>

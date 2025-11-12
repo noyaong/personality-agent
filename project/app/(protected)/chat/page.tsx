@@ -19,6 +19,7 @@ function ChatContent() {
 
   const [persona, setPersona] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -197,6 +198,8 @@ function ChatContent() {
 
         // 3. 세션의 기존 메시지 로드
         if (currentSessionId) {
+          setMessagesLoading(true);
+
           const { data: messages } = await supabase
             .from('chat_messages')
             .select('*')
@@ -213,7 +216,14 @@ function ChatContent() {
 
             // useChat의 setMessages로 메시지 설정
             chat.setMessages(uiMessages);
+
+            // 메시지 로드 후 스크롤 (약간의 딜레이 후)
+            setTimeout(() => {
+              scrollToBottom(false);
+            }, 100);
           }
+
+          setMessagesLoading(false);
         }
       } catch (err) {
         console.error('Error loading persona and session:', err);
@@ -270,28 +280,32 @@ function ChatContent() {
 
   if (loading || !persona) {
     return (
-      <div className="container mx-auto p-6 flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">
-          {loading ? '페르소나 정보를 불러오는 중...' : '페르소나를 찾을 수 없습니다.'}
-        </p>
+      <div className="min-h-screen color-bends-bg flex items-center justify-center">
+        <div className="text-center space-y-4 relative z-10">
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground font-medium">
+            {loading ? '페르소나 정보를 불러오는 중...' : '페르소나를 찾을 수 없습니다.'}
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto p-6 max-w-4xl">
+    <div className="min-h-screen color-bends-bg py-6">
+      <div className="container mx-auto px-6 max-w-4xl relative z-10">
       {/* 페르소나 헤더 */}
-      <Card className="p-6 mb-6">
+      <Card className="p-6 mb-6 shadow-md bg-white/90 border-2 animate-fade-in">
         <div className="flex items-start gap-4">
-          <Avatar className="h-16 w-16">
-            <AvatarFallback className="text-2xl">
+          <Avatar className="h-16 w-16 shadow-sm">
+            <AvatarFallback className="text-2xl gradient-bg text-white">
               {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-2xl font-bold">{persona.persona_name || persona.name}</h1>
-              {persona.is_official && <Badge variant="default">공식</Badge>}
+              <h1 className="text-2xl font-bold gradient-text">{persona.persona_name || persona.name}</h1>
+              {persona.is_official && <Badge className="gradient-bg text-white shadow-sm">공식</Badge>}
             </div>
             {persona.persona_description && (
               <p className="text-muted-foreground mb-3">
@@ -299,54 +313,101 @@ function ChatContent() {
               </p>
             )}
             <div className="flex gap-2">
-              <Badge variant="outline">{persona.mbti}</Badge>
-              <Badge variant="outline">{persona.disc}</Badge>
-              <Badge variant="outline">유형 {persona.enneagram}</Badge>
+              <Badge variant="outline" className="bg-purple-50 border-purple-200 text-purple-700">{persona.mbti}</Badge>
+              <Badge variant="outline" className="bg-cyan-50 border-cyan-200 text-cyan-700">{persona.disc}</Badge>
+              <Badge variant="outline" className="bg-pink-50 border-pink-200 text-pink-700">유형 {persona.enneagram}</Badge>
             </div>
           </div>
         </div>
       </Card>
 
       {/* 대화 영역 */}
-      <div className="bg-background border rounded-lg shadow-sm flex flex-col h-[600px]">
+      <div className="bg-white/90 border-2 rounded-lg shadow-md flex flex-col h-[600px] animate-slide-up">
         {/* 메시지 목록 */}
         <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {chat.messages.length === 0 && (
+          {messagesLoading ? (
+            // 메시지 로딩 중 스켈레톤
+            <div className="space-y-4 animate-fade-in">
+              {/* AI 메시지 스켈레톤 */}
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-lg p-4 bg-muted/50">
+                  <div className="flex items-start gap-2">
+                    <div className="h-8 w-8 rounded-full bg-muted-foreground/20 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-16 bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="h-4 w-full bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="h-4 w-3/4 bg-muted-foreground/20 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* 사용자 메시지 스켈레톤 */}
+              <div className="flex justify-end">
+                <div className="max-w-[80%] rounded-lg p-4 bg-primary/10">
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-12 bg-primary/30 rounded animate-pulse" />
+                      <div className="h-4 w-full bg-primary/30 rounded animate-pulse" />
+                      <div className="h-4 w-2/3 bg-primary/30 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {/* AI 메시지 스켈레톤 */}
+              <div className="flex justify-start">
+                <div className="max-w-[80%] rounded-lg p-4 bg-muted/50">
+                  <div className="flex items-start gap-2">
+                    <div className="h-8 w-8 rounded-full bg-muted-foreground/20 animate-pulse" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-16 bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="h-4 w-full bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="h-4 w-5/6 bg-muted-foreground/20 rounded animate-pulse" />
+                      <div className="h-4 w-4/5 bg-muted-foreground/20 rounded animate-pulse" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : chat.messages.length === 0 ? (
             <div className="text-center text-muted-foreground py-12">
               <p className="text-lg mb-2">{persona.persona_name || persona.name}와 대화를 시작해보세요!</p>
               <p className="text-sm">
                 이 페르소나는 {persona.mbti}, {persona.disc} 성향을 가지고 있습니다.
               </p>
             </div>
-          )}
+          ) : null}
 
           {chat.messages.map((message) => (
             <div
               key={message.id}
               className={`flex ${
                 message.role === 'user' ? 'justify-end' : 'justify-start'
-              }`}
+              } animate-fade-in`}
             >
               <div
-                className={`max-w-[80%] rounded-lg p-4 ${
+                className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${
                   message.role === 'user'
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted'
+                    ? 'gradient-bg text-white'
+                    : 'bg-white border border-border'
                 }`}
               >
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3">
                   {message.role === 'assistant' && (
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">
+                    <Avatar className="h-8 w-8 shadow-sm">
+                      <AvatarFallback className="text-xs gradient-bg text-white">
                         {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
                       </AvatarFallback>
                     </Avatar>
                   )}
                   <div className="flex-1">
-                    <p className="text-sm font-medium mb-1">
+                    <p className={`text-xs font-semibold mb-1.5 ${
+                      message.role === 'user' ? 'text-white/90' : 'text-muted-foreground'
+                    }`}>
                       {message.role === 'user' ? '나' : (persona.persona_name || persona.name)}
                     </p>
-                    <p className="whitespace-pre-wrap">
+                    <p className={`whitespace-pre-wrap leading-relaxed ${
+                      message.role === 'user' ? 'text-white' : 'text-foreground'
+                    }`}>
                       {message.parts
                         .filter((part) => part.type === 'text')
                         .map((part) => part.text)
@@ -359,22 +420,18 @@ function ChatContent() {
           ))}
 
           {chat.status === 'streaming' && (
-            <div className="flex justify-start">
-              <div className="max-w-[80%] rounded-lg p-4 bg-muted">
-                <div className="flex items-center gap-2">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs">
+            <div className="flex justify-start animate-fade-in">
+              <div className="max-w-[80%] rounded-2xl p-4 bg-white border border-border shadow-sm">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8 shadow-sm">
+                    <AvatarFallback className="text-xs gradient-bg text-white">
                       {(persona.persona_name || persona.name)?.charAt(0) || 'P'}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="flex gap-1">
-                    <span className="animate-bounce">●</span>
-                    <span className="animate-bounce" style={{ animationDelay: '0.1s' }}>
-                      ●
-                    </span>
-                    <span className="animate-bounce" style={{ animationDelay: '0.2s' }}>
-                      ●
-                    </span>
+                  <div className="flex gap-1.5">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce"></span>
+                    <span className="w-2 h-2 bg-accent rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></span>
+                    <span className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></span>
                   </div>
                 </div>
               </div>
@@ -391,16 +448,20 @@ function ChatContent() {
         </div>
 
         {/* 입력 폼 */}
-        <div className="border-t p-4">
-          <form onSubmit={handleSubmit} className="flex gap-2">
+        <div className="border-t border-border bg-gradient-to-r from-purple-50/30 to-cyan-50/30 p-4">
+          <form onSubmit={handleSubmit} className="flex gap-3">
             <Input
               ref={inputRef}
               name="message"
               placeholder="메시지를 입력하세요..."
               disabled={chat.status === 'streaming'}
-              className="flex-1"
+              className="flex-1 bg-white shadow-sm border-2 focus:border-primary/50"
             />
-            <Button type="submit" disabled={chat.status === 'streaming'}>
+            <Button
+              type="submit"
+              disabled={chat.status === 'streaming'}
+              className="gradient-bg text-white shadow-md hover:shadow-lg transition-all"
+            >
               전송
             </Button>
           </form>
@@ -409,9 +470,14 @@ function ChatContent() {
 
       {/* 돌아가기 버튼 */}
       <div className="mt-6 flex justify-center">
-        <Button variant="outline" onClick={() => router.push('/personas')}>
-          페르소나 목록으로
+        <Button
+          variant="outline"
+          onClick={() => router.push('/personas')}
+          className="bg-white/90 shadow-sm hover:shadow-md transition-all border-2"
+        >
+          ← 페르소나 목록으로
         </Button>
+      </div>
       </div>
     </div>
   );
