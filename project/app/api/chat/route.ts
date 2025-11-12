@@ -176,18 +176,26 @@ export async function POST(req: Request) {
     const lastUserMessage = messages.filter(m => m.role === 'user').pop();
 
     // 벡터 검색으로 유사한 대화 패턴 찾아서 컨텍스트 추가
-    if (lastUserMessage && lastUserMessage.content) {
-      const patternsContext = await enrichWithConversationPatterns(
-        typeof lastUserMessage.content === 'string'
-          ? lastUserMessage.content
-          : JSON.stringify(lastUserMessage.content),
-        persona,
-        relationshipType
-      );
+    if (lastUserMessage) {
+      // UIMessage를 모델 메시지로 변환하여 content 추출
+      const modelMsg = convertToModelMessages([lastUserMessage])[0];
+      const messageContent = modelMsg?.content;
 
-      if (patternsContext) {
-        systemPrompt += patternsContext;
-        console.log('✅ Added conversation patterns context to system prompt');
+      if (messageContent) {
+        const contentString = typeof messageContent === 'string'
+          ? messageContent
+          : JSON.stringify(messageContent);
+
+        const patternsContext = await enrichWithConversationPatterns(
+          contentString,
+          persona,
+          relationshipType
+        );
+
+        if (patternsContext) {
+          systemPrompt += patternsContext;
+          console.log('✅ Added conversation patterns context to system prompt');
+        }
       }
     }
 
