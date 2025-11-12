@@ -148,6 +148,15 @@ function ChatContent() {
       try {
         const supabase = createClient();
 
+        // 0. 사용자 정보 가져오기
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+          console.error('Authentication error:', authError);
+          router.push('/login');
+          return;
+        }
+
         // 1. 페르소나 정보 로드
         const { data: personaData, error: personaError } = await supabase
           .from('persona_profiles')
@@ -179,6 +188,7 @@ function ChatContent() {
           const { data: newSession, error: sessionError } = await supabase
             .from('chat_sessions')
             .insert({
+              user_id: user.id,
               persona_profile_id: personaId,
               relationship_type: 'peer',
               session_status: 'active',
