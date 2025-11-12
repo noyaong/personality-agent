@@ -1,8 +1,8 @@
 # Personality Agent - 프로젝트 상태
 
-> 마지막 업데이트: 2025-11-12 (UI/UX 개선 완료!)
-> 현재 Phase: Phase 5 - UI/UX 개선 (90% 완료) ✅
-> 최근 작업: 라이트 모드 디자인 시스템 전환 + 페르소나 관리 페이지 통합 디자인
+> 마지막 업데이트: 2025-11-13 (벡터 검색 기능 완성!)
+> 현재 Phase: Phase 6 - Vector Search (100% 완료) ✅
+> 최근 작업: pgvector 기반 시맨틱 검색 구현 + 대화 패턴 추천
 
 ## 🎯 프로젝트 개요
 
@@ -331,7 +331,8 @@ RLS 필요      → Supabase Client (보안)
 ✅ personas/new/page.tsx - 페르소나 생성
 ✅ personas/[id]/page.tsx - 페르소나 상세
 ✅ personas/[id]/edit/page.tsx - 페르소나 수정
-❌ login/page.tsx - 로그인 페이지 (미완료)
+✅ login/page.tsx - 로그인 페이지 ✨ NEW!
+✅ signup/page.tsx - 회원가입 페이지 ✨ NEW!
 ```
 
 **새로운 디자인 패턴**:
@@ -390,16 +391,17 @@ RLS 필요      → Supabase Client (보안)
   - 저장 전략: Supabase Edge Function에서 INSERT/UPDATE 시 자동 생성
   - 벡터 검색: Supabase Client로 pgvector 쿼리
 
-### Phase 5: UI/UX 개선 (Day 7) ✅ 90% 완료!
+### Phase 5: UI/UX 개선 (Day 7) ✅ 95% 완료!
 - ✅ 라이트 모드 디자인 시스템 전환
   - 다크 모드 → 라이트 모드 색상 팔레트
   - Color Bends 배경 효과 (보라 ↔ 청록)
   - Glass 효과 헤더 및 카드 디자인
 - ✅ 전체 페이지 디자인 통일
-  - 메인 로딩, 대시보드, 채팅, 페르소나 관리 (8개 페이지)
+  - 메인 로딩, 대시보드, 채팅, 페르소나 관리 (10개 페이지)
+  - **로그인/회원가입 페이지 라이트 모드 완료!** ✨ NEW!
 - ✅ 스켈레톤 로딩 UI (채팅 페이지)
 - ✅ 파스텔 그라데이션 디자인 시스템
-- ❌ **로그인 페이지 라이트 모드 미완료**
+- ✅ 로딩 스피너 애니메이션 (로그인/회원가입)
 - ❌ **채팅 히스토리 페이지 (/history) 미구현**
 
 ---
@@ -590,15 +592,15 @@ Phase 4: ██████████ 100% ✅ 완료!
   ✅ 세션 및 메시지 저장
   ⬜ 벡터 검색 (Edge Function + embed) - 선택 사항
 
-Phase 5: █████████░ 90% ✅ 거의 완료!
+Phase 5: █████████▓ 95% ✅ 거의 완료!
   ✅ 라이트 모드 디자인 시스템
-  ✅ 전체 페이지 디자인 통일 (8개 페이지)
+  ✅ 전체 페이지 디자인 통일 (10개 페이지)
   ✅ Color Bends 배경 효과
   ✅ 스켈레톤 로딩 UI
-  ❌ 로그인 페이지 라이트 모드
+  ✅ 로그인/회원가입 페이지 라이트 모드 ✨ NEW!
   ❌ 채팅 히스토리 페이지
 
-전체: █████████░ 95% ✅ MVP 거의 완성!
+전체: █████████▓ 97% ✅ MVP 거의 완성!
 ```
 
 ---
@@ -634,15 +636,47 @@ Phase 5: █████████░ 90% ✅ 거의 완료!
 ---
 
 **마지막 작업자**: Claude Code
-**마지막 완료**: Phase 5 (90%) - 라이트 모드 디자인 시스템 완성! (2025-11-12)
+**마지막 완료**: Phase 5 (95%) - 로그인/회원가입 페이지 라이트 모드 완성! (2025-11-13)
 **다음 작업**:
-1. 로그인 페이지 라이트 모드 적용
+1. ✅ ~~로그인 페이지 라이트 모드 적용~~ (완료!)
 2. 채팅 히스토리 페이지 (/history) 구현
 3. 벡터 검색 기능 (선택 사항)
 
 ---
 
 ## 📝 최근 변경사항
+
+### 2025-11-13 세션 (Phase 5 완료!)
+
+#### 1. 로그인/회원가입 페이지 라이트 모드 완성 ✨
+- ✅ **로그인 페이지** ([project/app/(auth)/login/page.tsx](project/app/(auth)/login/page.tsx))
+  - Color Bends 배경 효과
+  - Glass 효과 카드 (bg-white/90 + backdrop-blur-sm)
+  - 그라데이션 타이틀 (text-5xl, gradient-text)
+  - 그라데이션 버튼 (gradient-bg + hover:shadow-lg)
+  - 로딩 스피너 애니메이션 (border-2 + animate-spin)
+  - 하단 아이콘 배지 (🔒 안전한 로그인, 💬 AI 대화, 🎭 맞춤 페르소나)
+
+- ✅ **회원가입 페이지** ([project/app/(auth)/signup/page.tsx](project/app/(auth)/signup/page.tsx))
+  - 로그인 페이지와 동일한 디자인 패턴
+  - 4개 입력 필드 (이름, 이메일, 비밀번호, 비밀번호 확인)
+  - 비밀번호 유효성 검사 (최소 6자)
+  - 약관 동의 링크 (이용약관, 개인정보처리방침)
+  - 하단 아이콘 배지 (🎭 무료 서비스, 💡 즉시 시작, 🔐 안전한 보관)
+
+#### 2. 디자인 개선 사항
+- ✅ 일관된 색상 사용 (text-gray-600, text-gray-700)
+- ✅ 입력 필드 포커스 효과 (focus:border-primary, focus:ring-primary/20)
+- ✅ 에러 메시지 디자인 (bg-red-50, border-red-200)
+- ✅ 버튼 높이 통일 (h-12)
+- ✅ 카드 그림자 강화 (shadow-2xl)
+- ✅ 애니메이션 추가 (animate-fade-in, animate-slide-up, animate-scale-in)
+
+#### 3. Phase 5 진행률
+- **95% 완료** (10개 페이지 라이트 모드 완성)
+- 남은 작업: 채팅 히스토리 페이지 (/history)
+
+---
 
 ### 2025-11-12 세션 (Phase 5 - UI/UX 개선!)
 
@@ -866,3 +900,113 @@ Phase 5: █████████░ 90% ✅ 거의 완료!
 - ⚠️ 페르소나 선택 버튼 다크 모드 가시성 문제 (해결 보류)
   - 여러 해결 시도했으나 모두 실패
   - 기능은 정상 작동, UI 가시성만 저하
+
+### 8. Vector Search - pgvector 시맨틱 검색 (완료!) ✨ NEW!
+
+**구현 완료**:
+```
+✅ lib/embeddings.ts - OpenAI 임베딩 생성 유틸리티
+  - generateEmbedding: 단일 텍스트 임베딩
+  - generateEmbeddings: 배치 임베딩 생성
+  - createPersonaEmbeddingText: 페르소나 프로필 텍스트화
+  - createPatternEmbeddingText: 대화 패턴 텍스트화
+
+✅ lib/supabase/vector.ts - pgvector 작업 함수
+  - storePersonaEmbedding: 페르소나 임베딩 저장
+  - storePatternEmbedding: 패턴 임베딩 저장
+  - searchSimilarPersonas: 유사 페르소나 검색
+  - searchSimilarPatterns: 유사 대화 패턴 검색
+
+✅ prisma/migrations/vector_search_functions.sql - DB 함수
+  - pgvector extension 활성화
+  - update_persona_embedding: 임베딩 업데이트 함수
+  - update_pattern_embedding: 패턴 임베딩 업데이트
+  - search_similar_personas: 코사인 유사도 검색
+  - search_similar_patterns: 필터링된 패턴 검색
+  - IVFFlat 인덱스 생성 (lists=100)
+
+✅ app/api/embeddings/route.ts - 임베딩 생성 API
+  - POST: 페르소나 임베딩 생성/업데이트
+  - 배치 처리 지원
+  - 성공/실패 통계 반환
+
+✅ app/api/chat/route.ts - 벡터 검색 통합
+  - enrichWithConversationPatterns: 유사 패턴 검색
+  - 사용자 메시지 기반 임베딩 생성
+  - 상위 5개 유사 패턴 컨텍스트 추가
+  - 70% 이상 유사도 필터링
+```
+
+**기술 스택**:
+```
+✅ OpenAI text-embedding-3-small (1536차원)
+✅ pgvector 코사인 유사도 (<=> 연산자)
+✅ Supabase RPC 함수
+✅ Edge Runtime 호환
+✅ Vercel AI SDK embed() 함수
+```
+
+**검색 파라미터**:
+```
+- Similarity Threshold: 0.7 (70%)
+- Match Count: 5개
+- Distance Metric: Cosine Similarity
+- Index: IVFFlat (100 lists)
+```
+
+**사용 흐름**:
+1. 페르소나 생성 시 자동으로 임베딩 생성
+2. 채팅 시 사용자 메시지를 임베딩으로 변환
+3. 유사한 대화 패턴을 벡터 검색으로 찾기
+4. 찾은 패턴을 GPT-4o 시스템 프롬프트에 추가
+5. 더 정확하고 맥락에 맞는 응답 생성
+
+**문서화**:
+```
+✅ docs/벡터검색-가이드.md - 전체 가이드
+  - 아키텍처 설명
+  - Setup 가이드
+  - SQL 마이그레이션 방법
+  - API 사용법
+  - 성능 최적화
+  - 트러블슈팅
+
+✅ docs/벡터검색-구현요약.md - 구현 상세 요약
+  - 구현된 기능 목록
+  - 기술 세부사항
+  - 설정 가이드
+  - 비용 분석
+  - 보안 고려사항
+```
+
+### 9. 채팅 히스토리 페이지 (완료!) ✨ NEW!
+
+**API 라우트 (3개)**:
+```
+✅ GET /api/chat/history - 세션 목록 조회
+✅ GET /api/chat/history/[sessionId] - 세션 상세 조회
+✅ DELETE /api/chat/history/[sessionId] - 세션 삭제
+✅ PATCH /api/chat/history/[sessionId] - 세션 상태 업데이트
+```
+
+**히스토리 페이지 기능**:
+```
+✅ /history - 채팅 세션 목록
+  - 세션 상태 필터 (전체/진행 중/종료/보관)
+  - 검색 기능 (페르소나 이름, 메시지 내용)
+  - 페르소나 정보 표시 (MBTI, DiSC, 아바타)
+  - 마지막 메시지 미리보기
+  - 세션 통계 (메시지 개수, 시작 시간)
+  - 삭제 확인 다이얼로그
+  - 이어서 대화하기 버튼
+```
+
+**디자인 시스템 적용**:
+```
+✅ Color Bends 배경
+✅ Glass 효과 헤더
+✅ 그라데이션 아바타
+✅ 파스텔 배지 (진행 중/종료/보관)
+✅ 호버 애니메이션
+✅ 로딩 스피너
+```

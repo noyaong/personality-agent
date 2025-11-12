@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { openai } from '@ai-sdk/openai';
 import { streamText, convertToModelMessages, UIMessage } from 'ai';
 import psychologyProfiles from '@/data/psychology-profiles.json';
+import { generateEmbedding } from '@/lib/embeddings';
+import { searchSimilarPatterns } from '@/lib/supabase/vector';
 
 export const runtime = 'edge';
 
@@ -82,11 +84,50 @@ function generatePersonaPrompt(persona: any): string {
   return prompt;
 }
 
+// 유사한 대화 패턴을 찾아서 컨텍스트에 추가
+async function enrichWithConversationPatterns(
+  userMessage: string,
+  persona: any,
+  relationshipType?: string
+): Promise<string> {
+  try {
+    // 사용자 메시지의 임베딩 생성
+    const embedding = await generateEmbedding(userMessage);
+
+    // 유사한 대화 패턴 검색
+    const similarPatterns = await searchSimilarPatterns(
+      embedding,
+      persona.mbti,
+      relationshipType,
+      5, // 상위 5개 패턴
+      0.7 // 70% 이상 유사도
+    );
+
+    if (similarPatterns.length === 0) {
+      return '';
+    }
+
+    // 패턴 정보를 텍스트로 변환
+    let patternsContext = '\n\n## 참고: 유사한 대화 패턴\n';
+    patternsContext += '아래는 비슷한 상황에서 효과적이었던 대화 패턴입니다. 자연스럽게 참고하세요:\n\n';
+
+    similarPatterns.forEach((pattern, index) => {
+      patternsContext += `${index + 1}. ${pattern.pattern_text}\n`;
+      patternsContext += `   (유사도: ${(pattern.similarity * 100).toFixed(1)}%)\n\n`;
+    });
+
+    return patternsContext;
+  } catch (error) {
+    console.error('Error enriching with conversation patterns:', error);
+    return ''; // 실패해도 대화는 계속 진행
+  }
+}
+
 export async function POST(req: Request) {
   try {
-    const { messages, personaId }: { messages: UIMessage[]; personaId: string } = await req.json();
+    const { messages, personaId, relationshipType }: { messages: UIMessage[]; personaId: string; relationshipType?: string } = await req.json();
 
-    console.log('📨 Received request:', { personaId, messagesCount: messages?.length });
+    console.log('📨 Received request:', { personaId, messagesCount: messages?.length, relationshipType });
     console.log('📨 Messages:', JSON.stringify(messages, null, 2));
 
     if (!personaId) {
@@ -129,7 +170,26 @@ export async function POST(req: Request) {
     }
 
     // 시스템 프롬프트 생성
-    const systemPrompt = generatePersonaPrompt(persona);
+    let systemPrompt = generatePersonaPrompt(persona);
+
+    // 마지막 사용자 메시지 가져오기
+    const lastUserMessage = messages.filter(m => m.role === 'user').pop();
+
+    // 벡터 검색으로 유사한 대화 패턴 찾아서 컨텍스트 추가
+    if (lastUserMessage && lastUserMessage.content) {
+      const patternsContext = await enrichWithConversationPatterns(
+        typeof lastUserMessage.content === 'string'
+          ? lastUserMessage.content
+          : JSON.stringify(lastUserMessage.content),
+        persona,
+        relationshipType
+      );
+
+      if (patternsContext) {
+        systemPrompt += patternsContext;
+        console.log('✅ Added conversation patterns context to system prompt');
+      }
+    }
 
     // UIMessage 배열을 모델 메시지 형식으로 변환
     const modelMessages = convertToModelMessages(messages);
