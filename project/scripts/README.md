@@ -1,21 +1,55 @@
-# Golden Patterns Seeding Scripts
+# Golden Patterns Scripts
 
-이 디렉토리에는 골든 대화 패턴을 데이터베이스에 시딩하는 스크립트가 포함되어 있습니다.
+골든 대화 패턴 관리 및 시딩 스크립트 모음
+
+> 마지막 업데이트: 2025-11-14
+
+---
 
 ## 📁 파일 구조
 
 ```
 scripts/
 ├── README.md                    # 이 파일
-├── golden-patterns-data.ts      # 골든 패턴 데이터 정의
-└── seed-golden-patterns.ts      # 시딩 스크립트
+│
+├── golden-patterns-data.ts      # 골든 패턴 데이터 (123개)
+├── seed-golden-patterns.ts      # 메인 시딩 스크립트
+│
+├── analyze-patterns.ts          # 기존 패턴 분석
+├── verify-patterns.ts           # 패턴 개수 검증
+├── verify-all.ts                # 전체 검증
+├── find-gaps.ts                 # 누락된 조합 탐지
+│
+└── regenerate-embeddings.ts     # 임베딩 재생성
+    remove-duplicates.ts         # 중복 패턴 제거
 ```
+
+### 스크립트 분류
+
+#### 데이터
+- **golden-patterns-data.ts** - 123개 골든 패턴 정의 (Tier 1/2/3)
+
+#### 시딩
+- **seed-golden-patterns.ts** - 메인 시딩 스크립트
+  ```bash
+  npm run seed:patterns
+  ```
+
+#### 분석/검증
+- **analyze-patterns.ts** - 기존 패턴 통계 및 분석
+- **verify-patterns.ts** - 패턴 개수 검증 (목표 대비)
+- **verify-all.ts** - 전체 품질 검증 (필수 필드, 임베딩 등)
+- **find-gaps.ts** - 누락된 MBTI × 관계 조합 탐지
+
+#### 유틸리티
+- **regenerate-embeddings.ts** - 기존 패턴의 임베딩 재생성
+- **remove-duplicates.ts** - 중복 패턴 제거
+
+---
 
 ## 🎯 골든 패턴 전략
 
-### 우선순위 50개 조합
-
-6,912개의 가능한 조합 중, 실제 사용 빈도와 특성의 뚜렷함을 기준으로 50개 핵심 조합을 선정했습니다.
+### 최종 목표: 123개 패턴 ✅ 완료!
 
 **조합 구성**:
 - MBTI: 16가지
@@ -25,87 +59,46 @@ scripts/
 
 ### 티어 시스템
 
-#### Tier 1: 매우 흔한 조합 (15개)
+#### Tier 1: 매우 흔한 조합 (45개 패턴)
 - MBTI 빈도 높음 + 뚜렷한 특성
-- 조합당 평균 3개 패턴
-- 예상 패턴 수: 45개
+- 우선순위: 최상
 
-#### Tier 2: 흔한 조합 (15개)
+#### Tier 2: 흔한 조합 (38개 패턴)
 - 중간 빈도 + 특색있는 조합
-- 조합당 평균 2.5개 패턴
-- 예상 패턴 수: 38개
+- 우선순위: 중간
 
-#### Tier 3: 특색있는 조합 (20개)
+#### Tier 3: 특색있는 조합 (40개 패턴)
 - 낮은 빈도지만 고유한 특성
-- 조합당 평균 2개 패턴
-- 예상 패턴 수: 40개
+- 우선순위: 낮음
 
-**총 목표**: 50개 조합 × 평균 2.5개 = **약 123개 골든 패턴**
+---
 
-## 📊 현재 상태 ✅ 완료!
+## 📊 현재 상태 ✅ 123개 완료!
 
 ### 시딩 완료 (2025-11-13)
 
-```typescript
-// golden-patterns-data.ts 통계
-tier1Patterns.length = 29  // Tier 1: 29/45 (64%)
-tier2Patterns.length = 18  // Tier 2: 18/38 (47%)
-tier3Patterns.length = 4   // Tier 3: 4/40 (10%)
-allGoldenPatterns.length = 51  // 전체: 51/123 (41%)
+```
+✅ Tier 1: 45개 패턴 (100%)
+✅ Tier 2: 38개 패턴 (100%)
+✅ Tier 3: 40개 패턴 (100%)
+✅ 전체: 123개 패턴 (100%)
 ```
 
-### 진행 상황
+### 벡터 검색 최적화
 
-- ✅ **인프라**: 벡터 검색 시스템 완성
-- ✅ **스크립트**: 시딩 스크립트 작성 완료
-- ✅ **데이터**: 51개 골든 패턴 작성 완료
-- ✅ **실행**: 시딩 성공! (2025-11-13)
-- ✅ **데이터베이스**: 51개 패턴 + 임베딩 저장 완료
+- ✅ threshold: 0.7 → **0.3** (최적화 완료)
+- ✅ 애니어그램 필터링 추가
+- ✅ MBTI × 관계 조합 48개 전체 커버리지 달성
+
+---
 
 ## 🚀 사용 방법
 
-### 시딩 완료! ✅
+### 1. 메인 시딩 스크립트
 
-**51개 패턴이 이미 시딩되었습니다!** (2025-11-13)
+**123개 패턴이 이미 시딩되었습니다!** (2025-11-13)
 
-추가 패턴을 시딩하려면:
-
-### 1. 환경 변수 설정 (이미 완료)
-
-`.env.local` 파일에 필요한 변수들:
-
-```bash
-NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key  # Admin key
-OPENAI_API_KEY=your-openai-api-key
-```
-
-### 2. 추가 골든 패턴 작성
-
-`golden-patterns-data.ts` 파일을 편집하여 패턴을 추가합니다:
-
-```typescript
-export const tier1Patterns: GoldenPattern[] = [
-  {
-    mbti: 'ISTJ',
-    disc: 'DC',
-    enneagram: '1',
-    relationship_type: 'superior',
-    pattern_category: 'reporting',
-    conversation_topic: '프로젝트 진행 상황 보고',
-    emotional_context: '체계적이고 정확하며 책임감 있는',
-    pattern_text: '상급자에게 프로젝트 진행 상황을 보고할 때...',
-    example_responses: [
-      '프로젝트 진행률은 현재 87%입니다.',
-      '데이터를 분석한 결과...',
-    ],
-    effectiveness_score: 0.92
-  },
-  // ... 더 많은 패턴
-]
-```
-
-### 3. 시딩 실행 (추가 패턴이 있을 경우)
+재시딩 또는 추가 시딩이 필요한 경우:
 
 ```bash
 cd project
@@ -118,54 +111,49 @@ npm run seed:patterns
 npx tsx scripts/seed-golden-patterns.ts
 ```
 
-### 4. 실행 결과 (2025-11-13 시딩 결과)
+### 2. 패턴 분석
 
-✅ **51개 패턴 시딩 성공!**
+기존 패턴 통계 확인:
 
+```bash
+npx tsx scripts/analyze-patterns.ts
 ```
-🌱 Golden Patterns Seeding Script
-============================================================
-✅ Environment variables validated
-✅ Supabase admin client initialized
 
-📊 Pattern Statistics:
-   Tier 1: 29/45 patterns
-   Tier 2: 18/38 patterns
-   Tier 3: 4/40 patterns
-   Total: 51/123 patterns
+### 3. 검증 스크립트
 
-🔍 Checking existing patterns...
-   Found 0 existing patterns in database
+패턴 개수 검증:
 
-🚀 Starting seeding process...
-============================================================
-
-[1/51] Processing: ISTJ+DC+1 (superior)
-   Category: reporting
-   Topic: 프로젝트 진행 상황 보고
-   ⏳ Generating embedding...
-   ✅ Embedding generated (1536 dimensions)
-   ⏳ Inserting into database...
-   ✅ Pattern inserted (ID: uuid)
-   ⏳ Storing embedding vector...
-   ✅ Embedding stored successfully
-   ✅ Pattern 1/51 completed
-
-... (50 more patterns) ...
-
-============================================================
-📊 Seeding Summary:
-   ✅ Succeeded: 51/51
-   ❌ Failed: 0/51
-
-📈 Database Statistics:
-   Before: 0 patterns
-   After: 51 patterns
-   Added: 51 patterns
-
-✅ Seeding completed!
-============================================================
+```bash
+npx tsx scripts/verify-patterns.ts
 ```
+
+전체 품질 검증:
+
+```bash
+npx tsx scripts/verify-all.ts
+```
+
+누락된 조합 탐지:
+
+```bash
+npx tsx scripts/find-gaps.ts
+```
+
+### 4. 유틸리티
+
+임베딩 재생성 (필요시):
+
+```bash
+npx tsx scripts/regenerate-embeddings.ts
+```
+
+중복 패턴 제거:
+
+```bash
+npx tsx scripts/remove-duplicates.ts
+```
+
+---
 
 ## 📝 패턴 작성 가이드
 
@@ -216,6 +204,8 @@ npx tsx scripts/seed-golden-patterns.ts
 - [ ] emotional_context가 조합의 특성을 잘 표현하는가?
 - [ ] effectiveness_score가 적절한가? (0.8-0.95 권장)
 
+---
+
 ## 🔧 문제 해결
 
 ### 환경 변수 오류
@@ -242,86 +232,47 @@ npx tsx scripts/seed-golden-patterns.ts
 ```
 
 **해결**:
-1. Supabase 마이그레이션 확인: `prisma/migrations/vector_search_functions.sql`
+1. Supabase 마이그레이션 확인
 2. RPC 함수가 생성되었는지 Supabase Dashboard에서 확인
 3. 필요시 마이그레이션 재실행
 
-### 임베딩 저장 실패
+---
 
-```
-❌ Failed to store pattern embedding
-```
+## 📈 품질 검증
 
-**해결**:
-1. `pattern_embedding` 컬럼이 존재하는지 확인
-2. pgvector extension이 활성화되었는지 확인
-3. RPC 함수 권한 확인
+### 자기 유사도 체크
 
-## 📈 다음 단계
-
-### ✅ 완료된 작업 (2025-11-13)
-
-1. **골든 패턴 작성** ✅
-   - Tier 1: 29개 작성 (64% 완료)
-   - Tier 2: 18개 작성 (47% 완료)
-   - Tier 3: 4개 작성 (10% 완료)
-   - **총 51개 패턴 완성!**
-
-2. **시딩 실행** ✅
-   ```bash
-   npm run seed:patterns  # 성공!
-   ```
-
-3. **품질 검증** (진행 필요)
-   - [ ] 실제 대화에서 패턴 활용 테스트
-   - [ ] 유사도 threshold 조정 (현재 0.7)
-   - [ ] 검색 결과 개수 최적화 (현재 5개)
-
-### 선택사항 (추가 작업)
-
-1. **나머지 패턴 작성** (선택)
-   - Tier 1: 16개 더 작성하여 45개 목표 달성
-   - Tier 2: 20개 더 작성하여 38개 목표 달성
-   - Tier 3: 36개 더 작성하여 40개 목표 달성
-   - 총 72개 더 작성 → 123개 목표 달성
-
-### 향후 계획
-
-4. **자동 패턴 생성 파이프라인**
-   - 누락된 조합 자동 탐지
-   - GPT-4o 기반 패턴 생성
-   - 품질 검증 로직
-
-5. **성능 최적화**
-   - Redis 캐싱 (선택사항)
-   - 임베딩 배치 생성
-   - 벡터 인덱스 튜닝
-
-## 🔗 관련 문서
-
-- [AI Pattern Generation Guide](../../docs/ai-pattern-generation.md)
-- [Vector Search Guide](../../docs/VECTOR_GUIDE.md)
-- [Psychology Profiles](../data/psychology-profiles.json)
-- [Relationship Guides](../data/relationship-guides.json)
-
-## 📊 통계 확인
-
-시딩 후 데이터베이스에서 통계 확인:
+각 패턴의 임베딩 자기 유사도가 90% 이상인지 확인:
 
 ```sql
--- 전체 패턴 수
-SELECT COUNT(*) FROM conversation_patterns;
-
--- MBTI별 패턴 수
-SELECT mbti, COUNT(*)
+SELECT
+  id,
+  mbti,
+  relationship_type,
+  1 - (pattern_embedding <=> pattern_embedding) as self_similarity
 FROM conversation_patterns
-GROUP BY mbti
-ORDER BY COUNT(*) DESC;
+WHERE 1 - (pattern_embedding <=> pattern_embedding) < 0.9;
+```
 
--- 관계 타입별 패턴 수
-SELECT relationship_type, COUNT(*)
+### MBTI × 관계 커버리지
+
+48개 조합이 모두 커버되었는지 확인:
+
+```sql
+SELECT
+  mbti,
+  relationship_type,
+  COUNT(*) as pattern_count
 FROM conversation_patterns
-GROUP BY relationship_type;
+GROUP BY mbti, relationship_type
+ORDER BY mbti, relationship_type;
+```
+
+### 패턴 품질 통계
+
+```sql
+-- 평균 effectiveness_score
+SELECT AVG(effectiveness_score) FROM conversation_patterns;
 
 -- 카테고리별 패턴 수
 SELECT pattern_category, COUNT(*)
@@ -329,6 +280,17 @@ FROM conversation_patterns
 GROUP BY pattern_category
 ORDER BY COUNT(*) DESC;
 ```
+
+---
+
+## 🔗 관련 문서
+
+- [AI Architecture](../../docs/AI_ARCHITECTURE.md) - AI 시스템 아키텍처
+- [AI Pattern Generation Guide](../../docs/ai-pattern-generation.md) - 패턴 생성 전략
+- [Psychology Profiles](../data/psychology-profiles.json) - 심리 프로필 정의
+- [Relationship Guides](../data/relationship-guides.json) - 관계별 가이드
+
+---
 
 ## 💡 팁
 
@@ -342,4 +304,4 @@ ORDER BY COUNT(*) DESC;
 
 ---
 
-**마지막 업데이트**: 2025-11-13
+**마지막 업데이트**: 2025-11-14

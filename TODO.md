@@ -1,190 +1,74 @@
 # TODO
 
-프로젝트 전체 할 일 목록
+프로젝트 할 일 목록
 
-> 마지막 업데이트: 2025-11-13
-
----
-
-## 🔥 남은 작업 (우선순위별)
-
-### 1️⃣ 즉시 가능 - UI 개선
-- [x] **로그인 페이지 라이트 모드 적용** ✅ 완료! (2025-11-13)
-  - Color Bends 배경
-  - Glass 효과 카드
-  - 그라데이션 버튼
-- [x] **회원가입 페이지 라이트 모드 적용** ✅ 완료! (2025-11-13)
-
-### 2️⃣ 중간 우선순위 - 기능 추가
-- [x] **채팅 히스토리 페이지 구현 (/history)** ✅ 완료! (2025-11-13)
-  - 과거 대화 세션 목록 조회
-  - 세션별 대화 내용 보기
-  - 세션 삭제 기능
-  - 상태 필터 (전체/진행 중/종료/보관)
-  - 검색 기능 (페르소나 이름, 메시지 내용)
-
-### 3️⃣ 낮은 우선순위 - 성능 최적화
-- [x] **벡터 검색 구현** ✅ 완료! (2025-11-13)
-  - OpenAI 임베딩 활용
-  - 유사 대화 패턴 검색
-  - pgvector 코사인 유사도
-  - 채팅 API에 통합
-
-### 4️⃣ 선택사항
-- [ ] TypeScript 타입 자동 생성
-- [ ] 모니터링 설정
-- [ ] 배포 준비
+> 마지막 업데이트: 2025-11-14
 
 ---
 
-## 📋 Phase 1: 기초 인프라 (Day 1) ✅ 완료!
+## 🎯 현재 상태
 
-### 데이터베이스
-- [x] Schema 설계 및 재작성
-- [x] persona-sharing-architecture 반영
-- [x] 문법 오류 수정
-- [x] schema.sql 실행
-- [x] 테이블 생성 검증
-- [x] RLS 정책 확인
-- [x] pgvector extension 확인
-- [x] 샘플 데이터 확인 (3개)
+### ✅ 완료된 Phase
+- **Phase 1-6**: 기초 인프라, Next.js 앱, 페르소나 시스템, 대화 엔진, UI/UX, 벡터 검색
+- **Phase 7**: 골든 데이터셋 (123개 패턴), 벡터 검색 최적화
 
-### MCP 설정
-- [x] .mcp.json 생성
-- [x] .mcp.json.example 생성
-- [x] .gitignore 설정
-- [x] MCP 연결 테스트
-- [x] SQL 실행 테스트
-
-### 환경 설정
-- [x] .env.local 파일 생성
-- [x] Supabase API 키 설정
-- [x] OpenAI API 키 설정
-- [x] DATABASE_URL 설정 (Prisma)
-
-### 문서화
-- [x] PROJECT_STATUS.md
-- [x] CHANGELOG.md
-- [x] TODO.md (이 파일)
-- [x] mcp-setup 가이드
-- [x] validate_schema.md
+### 🚀 현재 진행
+- **Phase 8**: 패턴 품질 향상 및 모니터링
 
 ---
 
-## 📱 Phase 2: Next.js 앱 구조 (Day 2-3) ✅ 완료!
+## 📋 남은 작업 (우선순위별)
 
-### 프로젝트 초기화
-- [x] Next.js 16 프로젝트 생성
-- [x] 프로젝트 구조 정리 (project/ 폴더)
-- [x] Prisma ORM 통합
+### 1️⃣ 즉시 가능 - 품질 테스트
 
-### 패키지 설치
-- [x] Supabase 클라이언트
-- [x] shadcn/ui 설치 (10개 컴포넌트)
-- [x] Vercel AI SDK (`ai @ai-sdk/openai`)
+- [ ] **실제 대화 품질 테스트**
+  - 다양한 페르소나로 대화 테스트 (INTJ, ESFP, ISFJ 등)
+  - 관계별 어조 적절성 검증 (상급자/동료/하급자)
+  - 페르소나 일관성 확인
+  - 벡터 검색 품질 평가
 
-### Supabase 클라이언트 설정
-- [x] `lib/supabase/client.ts` 생성
-- [x] `lib/supabase/server.ts` 생성
-- [x] `lib/supabase/middleware.ts` 생성
-- [x] 타입 생성 완료
+- [ ] **패턴 활용도 분석**
+  - 실제 사용된 패턴 추적
+  - 사용 빈도 높은 패턴 vs 낮은 패턴
+  - threshold/limit 파라미터 재조정
 
-### 인증 플로우
-- [x] 로그인 페이지
-- [x] 회원가입 페이지
-- [x] Auth 콜백 처리
-- [x] proxy.ts 미들웨어 (라우트 보호)
-- [x] AuthContext 구현
+### 2️⃣ 중간 우선순위 - 모니터링
 
----
+- [ ] **패턴 사용 로깅 시스템**
+  ```sql
+  CREATE TABLE pattern_usage_logs (
+    id UUID PRIMARY KEY,
+    chat_session_id UUID,
+    pattern_id UUID,
+    similarity_score FLOAT,
+    used_in_prompt BOOLEAN,
+    user_message TEXT,
+    created_at TIMESTAMPTZ
+  );
+  ```
 
-## 👤 Phase 3: 페르소나 시스템 (Day 3-4) ✅ 완료!
+- [ ] **품질 검증 자동화**
+  - `scripts/validate-pattern-quality.ts` - 필수 필드 검증
+  - `scripts/check-embedding-quality.ts` - 자기 유사도 체크
+  - `scripts/verify-coverage.ts` - MBTI/관계 커버리지 확인
 
-### 페르소나 CRUD
-- [x] 페르소나 목록 페이지
-- [x] 페르소나 생성 폼 (4단계 위저드)
-- [x] MBTI 선택 컴포넌트
-- [x] DiSC 선택 컴포넌트
-- [x] 애니어그램 선택 컴포넌트
-- [x] 공개 설정 (private/unlisted/public)
-- [x] 페르소나 카드 컴포넌트
-- [x] 페르소나 상세 페이지
-- [x] 페르소나 수정 기능
-- [x] 페르소나 삭제 기능
-- [x] 검색 기능
-- [x] 복제 기능
+### 3️⃣ 낮은 우선순위 - 기능 추가
 
-### API Routes
-- [x] `app/api/personas/route.ts` - GET, POST
-- [x] `app/api/personas/[id]/route.ts` - GET, PUT, DELETE
+- [ ] **패턴 증강**
+  - 사용 빈도 높은 조합 패턴 추가 (5-10개로 확대)
+  - 특수 상황 패턴 (crisis, celebration, daily)
+  - 저품질 패턴 개선 (사용률 하위 10%)
 
-### 데이터
-- [x] `data/psychology-profiles.json` 활용
-- [x] MBTI 16개 유형
-- [x] DiSC 16개 표준 유형
-- [x] 애니어그램 9개 + Wing
+- [ ] **검색 알고리즘 최적화**
+  - 관계별 threshold 차별화 (subordinate: 0.35, peer: 0.30, superior: 0.25)
+  - Re-ranking 로직 (유사도 × 0.7 + effectiveness × 0.2 + 빈도 × 0.1)
+  - 계층적 폴백 시스템 (선택사항)
 
----
+### 4️⃣ 선택사항 - 개발 환경
 
-## 💬 Phase 4: 대화 엔진 (Day 5-6) ✅ 완료!
-
-### 대화 UI
-- [x] 대화 페이지 (`app/chat/page.tsx`)
-- [ ] 페르소나 선택 모달
-- [ ] 관계 선택 (상급자/동료/하급자)
-- [x] 메시지 입력 폼
-- [x] 메시지 리스트 컴포넌트
-- [x] 스트리밍 응답 표시
-- [x] 스크롤 동작 최적화 (스트리밍 중/완료 후)
-- [x] 한글 입력(IME) 처리
-- [x] 입력 포커스 자동화
-
-### 대화 API
-- [x] `app/api/chat/route.ts` - 스트리밍 응답
-- [x] Vercel AI SDK `useChat` 훅 활용
-- [x] OpenAI GPT-4o 통합
-- [x] 시스템 프롬프트 생성 로직
-  - [x] 페르소나 특성 (MBTI + DiSC + 애니어그램)
-  - [x] 관계별 가이드 (`data/relationship-guides.json`)
-  - [ ] 유사 패턴 검색 결과
-
-### 벡터 검색
-- [x] OpenAI 임베딩 생성 ✅
-- [x] `search_similar_patterns` 함수 호출 ✅
-- [x] 유사도 기반 패턴 매칭 ✅
-- [x] 채팅 API에 통합 ✅
-- [ ] 계층적 폴백 (MBTI → DiSC → 애니어그램) (선택)
-
-### 세션 관리
-- [x] 대화 세션 생성
-- [x] 메시지 저장 (user + assistant)
-- [x] React 클로저 문제 해결 (useRef)
-- [x] 대화 히스토리 로딩
-- [ ] 사용 통계 업데이트
-
-### 문서화
-- [x] 채팅 구현 가이드 작성
-  - [x] React 클로저 문제 해결 패턴
-  - [x] IME 처리 베스트 프랙티스
-  - [x] 메시지 저장 아키텍처
-  - [x] 스크롤 동작 최적화
-  - [x] 트러블슈팅 가이드
-- [x] CHANGELOG 업데이트
-
----
-
-## 🎨 Phase 5: UI/UX 개선 (Day 7) ✅ 95% 완료!
-
-- [x] 라이트 모드 디자인 시스템 전환
-- [x] Color Bends 배경 효과
-- [x] Glass 효과 헤더
-- [x] 파스텔 그라데이션 카드
-- [x] 스켈레톤 로딩 UI
-- [x] 전체 페이지 디자인 통일 (10개 페이지)
-- [x] **로그인/회원가입 페이지 라이트 모드** ✅ 완료!
-- [ ] 반응형 디자인 (모바일/태블릿)
-- [ ] 에러 처리 및 토스트 알림
-- [ ] 접근성 (a11y) 개선
+- [ ] TypeScript 타입 자동 생성 (`prisma generate`)
+- [ ] 모니터링 설정 (Vercel Analytics, Sentry)
+- [ ] 배포 최적화
 
 ---
 
@@ -202,8 +86,8 @@
 
 - [ ] Vercel Analytics 설정
 - [ ] Sentry 에러 추적
-- [ ] Supabase Realtime 구독
 - [ ] 사용 통계 대시보드
+- [ ] 패턴 효과성 추적
 
 ---
 
@@ -224,7 +108,6 @@
 - [ ] 감정 분석
 - [ ] 대화 분석 리포트
 - [ ] 페르소나 추천 시스템
-- [ ] 대화 패턴 학습 (사용자 피드백)
 
 ### 소셜 기능
 - [ ] 공개 페르소나 마켓플레이스
@@ -232,180 +115,49 @@
 - [ ] 페르소나 평점 시스템
 - [ ] 커뮤니티 페이지
 
-### 관리자 기능
-- [ ] 관리자 대시보드
-- [ ] 공식 페르소나 관리
-- [ ] 사용자 관리
-- [ ] 통계 및 분석
+---
+
+## 📈 Phase 8: 패턴 품질 향상 (진행 중)
+
+### 목표
+1. 🔥 실제 대화 품질 테스트 (30회 이상)
+2. 🔥 패턴 사용 모니터링 시스템 구축
+3. 🔥 패턴 품질 체크 자동화
+4. 🔥 저품질 패턴 개선 및 증강
+
+### 성공 지표
+- [ ] 모든 패턴 자기 유사도 > 90%
+- [ ] 평균 effectiveness_score > 0.85
+- [ ] 패턴 사용률 > 70% (1주일 기준)
+- [ ] MBTI × 관계 조합 48개 전체 커버
+
+### 예상 소요 시간
+3-5일
 
 ---
 
-## 📝 체크리스트 템플릿
+## 📝 완료 이력
 
-새로운 기능 추가 시 체크:
+### 2025-11-13 (Phase 7 완료)
+- ✅ 골든 패턴 123개 생성
+- ✅ 벡터 검색 버그 수정 (JSON → vector 변환)
+- ✅ threshold 최적화 (0.7 → 0.3)
+- ✅ 애니어그램 필터링 추가
+- ✅ MBTI 16개 전체 커버리지 달성
 
-- [ ] 기능 설계 및 문서화
-- [ ] DB 스키마 변경 (필요 시)
-- [ ] API 구현
-- [ ] UI 구현
-- [ ] 테스트 작성
-- [ ] 문서 업데이트
-- [ ] CHANGELOG 업데이트
-- [ ] Git 커밋 및 푸시
+### 2025-11-11
+- ✅ 로그인/회원가입 페이지 라이트 모드
+- ✅ 채팅 히스토리 페이지 구현
+- ✅ Production 배포 완료
 
----
-
-## 🏁 마일스톤 달성 기준
-
-### Phase 1 완료 조건 ✅ 100%
-- [x] schema.sql 작성
-- [x] MCP 설정
-- [x] schema.sql 실행 완료
-- [x] 5개 테이블 생성 확인
-- [x] RLS 정책 활성화 확인
-- [x] 샘플 데이터 3개 확인
-
-### Phase 2 완료 조건 ✅ 100%
-- [x] Next.js 16 앱 실행 가능
-- [x] Supabase 클라이언트 연결
-- [x] 로그인 작동
-- [x] AuthContext 구현
-
-### Phase 3 완료 조건 ✅ 100%
-- [x] 페르소나 생성 가능
-- [x] MBTI + DiSC + 애니어그램 선택
-- [x] 공개/비공개 설정 작동
-- [x] 페르소나 목록 조회
-- [x] 검색/복제 기능
-
-### Phase 4 완료 조건 ✅ 100%
-- [x] 페르소나와 실시간 대화 가능
-- [x] 스트리밍 응답 작동
-- [x] 페르소나 기반 프롬프트 적용
-- [x] 벡터 검색 ✅
-
-### Phase 5 완료 조건 ✅ 100%
-- [x] 라이트 모드 디자인 시스템
-- [x] 전체 페이지 디자인 통일 (10개 페이지)
-- [x] 로그인/회원가입 페이지 라이트 모드 ✅
-- [x] 채팅 히스토리 페이지 ✅
-
-### Phase 6 완료 조건 ✅ 100%
-- [x] Vector Search 구현 ✅
-- [x] OpenAI 임베딩 생성 ✅
-- [x] pgvector 검색 함수 ✅
-- [x] 채팅 API 통합 ✅
-- [x] 문서화 완료 ✅
+### 2025-11-10
+- ✅ 벡터 검색 인프라 구현
+- ✅ OpenAI 임베딩 통합
+- ✅ RLS 정책 설정
 
 ---
 
-**최종 업데이트**: 2025-11-13
-**현재 진행률**: Phase 6 완료, Phase 7 진행 중
+**다음 단계**: Phase 8 시작 - 실제 대화 품질 테스트 및 패턴 모니터링 시스템 구축
 
-**완료된 작업**:
-1. ✅ 로그인/회원가입 페이지 라이트 모드
-2. ✅ 채팅 히스토리 페이지 구현
-3. ✅ 벡터 검색 인프라 구현
-4. ✅ RLS 정책 설정 (chat_sessions, chat_messages)
-5. ✅ Production 배포 완료
-6. ✅ 빌드 에러 수정 (UIMessage.content)
-7. ✅ 문서 현행화 (ai-pattern-generation.md v3)
-
-**다음 단계**:
-- ✅ 골든 데이터셋 생성 완료! (123개 conversation_patterns) ✅ 2025-11-13
-- ✅ 벡터 검색 버그 수정 완료! (JSON → vector 변환 문제 해결) ✅ 2025-11-13
-- ✅ 임베딩 재생성 완료! (자기 유사도 91.88%) ✅ 2025-11-13
-- ✅ threshold 최적화 완료! (0.7 → 0.3) ✅ 2025-11-13
-- ✅ 추가 패턴 생성 완료! (123개 목표 달성) ✅ 2025-11-13
-- ✅ search_similar_patterns 함수 업데이트 (relationship_type 반환) ✅ 2025-11-13
-- ✅ 애니어그램 필터링 추가 (5w6 → 5 자동 변환) ✅ 2025-11-13
-- 🎯 실제 대화 테스트 및 품질 검증 (다음 단계)
-
----
-
-## 📊 Phase 7: 골든 데이터셋 및 벡터 검색 최적화 ✅ 완료! (2025-11-13)
-
-### 현재 상태 ✅ 100% 완료!
-- ✅ **골든 패턴 수**: **123개** (목표 달성!) 🎉🎉🎉
-  - 초기 생성: 51개
-  - 추가 생성: 58개 (66개 - 8개 중복)
-  - 최종 추가: 14개
-  - **총 123개 고유 조합** (중복 제거 완료)
-- ✅ **MBTI 커버리지**: 16개 전체 (평균 7.7개/MBTI)
-- ✅ **관계 타입 분포**:
-  - peer: 68개 (55.3%)
-  - subordinate: 31개 (25.2%)
-  - superior: 24개 (19.5%)
-- ✅ **품질**: 평균 effectiveness_score 0.863 (모두 0.82 이상)
-- ✅ **인프라**: 벡터 검색 완전 작동
-- ✅ **스키마**: conversation_patterns 테이블 최적화 완료
-- ✅ **RPC 함수**: search_similar_patterns (relationship_type 포함), update_pattern_embedding
-- ✅ **DiSC**: 16가지 조합 모두 정의됨 (psychology-profiles.json)
-- ✅ **시딩 스크립트**: 완성 및 검증 완료
-
-### 완료된 작업 ✅
-- [x] 우선순위 조합 50개 선정
-  - MBTI 16 × DiSC 16 × 애니어그램 9 × 관계 3 = 6,912개 조합 중 선택
-  - High Priority: ISTJ+DC+1, ESFJ+IS+2, ESTJ+DI+8 등
-- [x] 조합당 2-3개 상황별 패턴 작성
-  - feedback, support, conflict, decision_making, collaboration 등
-- [x] 총 51개 골든 패턴 작성
-- [x] 시딩 스크립트 작성 및 실행 ✅
-  - `scripts/seed-golden-patterns.ts`
-  - `scripts/golden-patterns-data.ts`
-  - 임베딩 생성 + DB 저장 완료
-- [x] 벡터 검색 버그 수정 ✅ 2025-11-13
-  - 문제: 임베딩이 JSON 문자열로 저장되어 vector 변환 실패
-  - 해결: PostgreSQL 함수 수정 (JSON → vector 변환 추가)
-  - 영향: `update_pattern_embedding`, `search_similar_patterns` 함수
-- [x] 임베딩 재생성 ✅ 2025-11-13
-  - 51개 모든 패턴 임베딩 재생성
-  - 자기 유사도 검증: 91.88% (정상 작동 확인)
-- [x] threshold 최적화 ✅ 2025-11-13
-  - 실제 사용자 쿼리 테스트 결과: 최대 유사도 30-41%
-  - threshold 조정: 0.7 → 0.3 (사용자 쿼리와 패턴 간 의미적 거리 고려)
-  - 검색 결과 개수: 5개 → 3개 (프롬프트 길이 최적화)
-- [x] 추가 패턴 생성 (123개 목표 달성) ✅ 2025-11-13
-  - 중복 패턴 분석 및 제거 (189개 → 109개 → 123개)
-  - 부족한 MBTI 타입 보완 (ISFP, INFP, INTP, ENTJ 등)
-  - 관계 타입 균형 조정 (superior 24개, subordinate 31개, peer 68개)
-  - 모든 MBTI가 3가지 관계 타입 전부 커버 (16 × 3 = 48개 기본 커버리지 달성)
-- [x] search_similar_patterns 함수 업데이트 ✅ 2025-11-13
-  - relationship_type, mbti, disc, enneagram, pattern_category 필드 추가
-  - 검색 결과에서 패턴 메타데이터 접근 가능
-- [x] 최종 검증 완료 ✅ 2025-11-13
-  - 123개 고유 패턴 확인
-  - 벡터 검색 품질 테스트 통과
-  - MBTI별 커버리지 검증 완료
-  - 관계 타입별 분포 확인
-- [x] 애니어그램 필터링 추가 ✅ 2025-11-13
-  - PostgreSQL 함수에 `enneagram_filter` 파라미터 추가
-  - TypeScript에서 `"5w6"` → `"5"` 자동 변환 (wing 제거)
-  - 테스트 통과: INTJ + 5번 + subordinate 패턴 정확 매칭
-  - MBTI + 관계 타입 + 애니어그램 3중 필터링 완성
-- [ ] 실제 대화 품질 테스트 (다음 단계)
-  - 다양한 페르소나로 대화 테스트
-  - 패턴 활용도 및 응답 품질 평가
-
-### 생성된 파일
-- ✅ `project/scripts/seed-golden-patterns.ts` - 초기 시딩 스크립트 (51개)
-- ✅ `project/scripts/golden-patterns-data.ts` - 51개 골든 패턴 데이터
-- ✅ `project/scripts/additional-patterns-data.ts` - 66개 추가 패턴 데이터
-- ✅ `project/scripts/seed-additional-patterns.ts` - 추가 패턴 시딩 스크립트
-- ✅ `project/scripts/final-14-patterns.ts` - 최종 14개 패턴 데이터
-- ✅ `project/scripts/seed-final-14.ts` - 최종 패턴 시딩 스크립트
-- ✅ `project/scripts/analyze-existing-patterns.ts` - 패턴 분석 도구
-- ✅ `project/scripts/verify-pattern-count.ts` - 중복 검증 도구
-- ✅ `project/scripts/remove-duplicates.ts` - 중복 제거 도구
-- ✅ `project/scripts/find-missing-combinations.ts` - 부족한 조합 찾기 도구
-- ✅ `project/scripts/final-verification.ts` - 최종 검증 스크립트
-- ✅ `project/scripts/test-real-query.ts` - 실제 쿼리 테스트
-- ✅ `project/scripts/test-enneagram-filter.ts` - 애니어그램 필터링 테스트
-- ✅ `project/scripts/regenerate-embeddings.ts` - 임베딩 재생성 도구
-- ✅ `project/scripts/README.md` - 상세 가이드
-- ✅ `package.json` - `npm run seed:patterns` 스크립트 추가
-
-### 참고 문서
-- `docs/ai-pattern-generation.md` - v3 현행화 완료
-- `project/data/psychology-profiles.json` - DiSC 16가지 정의
-- `project/scripts/README.md` - 골든 패턴 가이드
+**최종 업데이트**: 2025-11-14
+**현재 진행률**: Phase 7 완료, Phase 8 준비 중
