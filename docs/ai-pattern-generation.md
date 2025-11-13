@@ -1,938 +1,601 @@
-# AI 기반 패턴 생성 전략 (v2)
+# AI 기반 패턴 생성 전략 (v3 - 현행화)
 
-## 🎯 정확한 문제 정의
+> **최종 업데이트**: 2025-11-13
+> **현재 상태**: Phase 1 구현 완료 (벡터 검색 기반 RAG)
+
+## 📋 구현 현황
+
+### ✅ 완료된 기능
+1. **벡터 임베딩 시스템**
+   - OpenAI `text-embedding-3-small` (1536차원) 사용
+   - `lib/embeddings.ts`: 임베딩 생성 함수 구현
+   - Persona 및 Pattern 임베딩 텍스트 생성
+
+2. **pgvector 검색 인프라**
+   - PostgreSQL vector extension 활성화
+   - IVFFlat 인덱스 (lists=100) 생성
+   - 코사인 유사도 기반 검색 함수
+   - `search_similar_patterns()` RPC 함수 구현
+
+3. **RAG 기반 대화 증강**
+   - `enrichWithConversationPatterns()` 함수
+   - 실시간 벡터 검색으로 유사 패턴 조회
+   - 시스템 프롬프트에 컨텍스트 주입
+
+4. **데이터베이스 스키마**
+   - `conversation_patterns` 테이블 (Prisma 스키마)
+   - RLS 정책 설정 완료
+   - 벡터 임베딩 컬럼 (`pattern_embedding`)
+
+### 🚧 진행 중 / 미구현
+- [ ] 골든 데이터셋 생성 (현재 0개)
+- [ ] 계층적 폴백 시스템
+- [ ] Redis 캐싱
+- [ ] 백그라운드 시딩
+- [ ] 품질 점수 시스템
+
+---
+
+## 🎯 문제 정의
 
 ### 실제 조합의 폭발
 
 ```
 MBTI: 16가지
-DiSC: 16가지 (2자릿수 세부 조합)
-  - D, Di, DC, DS
-  - I, ID, IS, IC
-  - S, SI, SD, SC
-  - C, CD, CI, CS
 
-애니어그램: 18가지 (날개 포함)
-  - 1w9, 1w2, 2w1, 2w3, 3w2, 3w4
-  - 4w3, 4w5, 5w4, 5w6, 6w5, 6w7
-  - 7w6, 7w8, 8w7, 8w9, 9w8, 9w1
+DiSC: 16가지 ✅ 이미 정의됨 (psychology-profiles.json)
+  기본형 (4가지): D, I, S, C
+  조합형 (12가지):
+    - DI, DC, DS (D 주도)
+    - ID, IS, IC (I 주도)
+    - SI, SC, SD (S 주도)
+    - CI, CD, CS (C 주도)
+
+애니어그램: 9가지 (기본 타입만, Phase 1)
+  - 1, 2, 3, 4, 5, 6, 7, 8, 9
+  ※ 날개 포함 18가지는 Phase 2
 
 관계: 3가지
+  - superior, peer, subordinate
 
-16 × 16 × 18 × 3 = 13,824개 조합
+16 × 16 × 9 × 3 = 6,912개 조합 (현재)
 
-카테고리: 7가지
-- greeting, feedback, conflict, celebration
-- stress_response, decision_making, information_sharing
+카테고리: 현재 미사용 (동적 컨텍스트 기반)
 
-총 패턴: 13,824 × 7 = 96,768개!
+※ Phase 2에서 애니어그램 날개 추가 시:
+  16 × 16 × 18 × 3 = 13,824개 조합
 ```
 
 ### 현실적 제약
-- ❌ 수동 작성 불가능
-- ❌ 전부 AI 생성도 비용 과다
-- ❌ 모든 조합이 실제로 사용되지 않음
+- ❌ 수동 작성 불가능 (6,912개 조합)
+- ✅ **현재 전략**: RAG 기반 동적 생성 (골든 데이터 기반)
+- ✅ 벡터 검색으로 실시간 유사 패턴 활용
+- ✅ DiSC 16가지 조합 이미 구현되어 있음
 
 ---
 
-## 🎯 해결책: 계층적 폴백 시스템
+## 🎯 현재 구현: RAG 기반 벡터 검색
 
-### 핵심 아이디어
+### 현재 아키텍처 (Phase 1)
+
+```
+사용자 메시지
+    ↓
+OpenAI Embedding (1536차원)
+    ↓
+pgvector 코사인 유사도 검색
+    ↓
+상위 5개 유사 패턴 (threshold >= 0.7)
+    ↓
+시스템 프롬프트에 컨텍스트 추가
+    ↓
+GPT-4o 대화 생성
+```
+
+### 향후 계획: 계층적 폴백 (Phase 2)
 
 ```
 Level 1 (완전체): ISTJ + DC + 1w2 + superior
                  ↓ (없으면 폴백)
-Level 2 (날개 생략): ISTJ + DC + 1 + superior
+Level 2 (날개 생략): ISTJ + DC + 1 + superior  ← Phase 1 현재 레벨
                     ↓ (없으면 폴백)
 Level 3 (DiSC 단순화): ISTJ + D + 1 + superior
                       ↓ (없으면 폴백)
-Level 4 (기본): MBTI + 관계만 → AI 전체 생성
+Level 4 (기본): MBTI + 관계만 → RAG 검색
 ```
+
+**참고**: 현재 DiSC 16가지 조합이 모두 정의되어 있으므로,
+골든 패턴 생성 시 DC, DI, IS 등의 조합을 바로 활용할 수 있습니다.
 
 ---
 
-## 📝 데이터베이스 스키마 개선
+## 📝 현재 데이터베이스 스키마
 
-### 계층적 패턴 저장
+### Prisma Schema (실제 구현)
+
+```prisma
+model ConversationPattern {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  mbti                 String   @db.VarChar(4)
+  disc                 String?  @db.VarChar(4)
+  enneagram            String?  @db.VarChar(3)
+  relationshipType     String   @map("relationship_type") @db.VarChar(50)
+  patternCategory      String   @map("pattern_category") @db.VarChar(100)
+  conversationTopic    String?  @map("conversation_topic")
+  emotionalContext     String?  @map("emotional_context")
+  patternText          String   @map("pattern_text")
+  exampleResponses     Json?    @map("example_responses")
+  effectivenessScore   Float?   @map("effectiveness_score")
+  usageFrequency       Int      @default(0) @map("usage_frequency")
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  // Vector embedding (1536차원, pgvector)
+  // ⚠️ Prisma가 지원하지 않으므로 Supabase RPC로 관리
+
+  @@map("conversation_patterns")
+}
+```
+
+### PostgreSQL Functions (실제 구현)
 
 ```sql
-CREATE TABLE conversation_patterns (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  
-  -- 기본 정보
-  mbti VARCHAR(4) NOT NULL,
-  disc VARCHAR(2) NOT NULL,           -- D, Di, DC 등
-  enneagram VARCHAR(10) NOT NULL,     -- 1, 1w2 등
-  relationship_type VARCHAR(20) NOT NULL,
-  pattern_category VARCHAR(50) NOT NULL,
-  
-  -- 계층 레벨
-  specificity_level INTEGER NOT NULL,
-  /* 
-    1: MBTI만 (예: ISTJ + superior + feedback)
-    2: MBTI + DiSC 주 스타일 (ISTJ + D + superior)
-    3: MBTI + DiSC 세부 + 애니어그램 기본 (ISTJ + DC + 1)
-    4: 완전체 (ISTJ + DC + 1w2)
-  */
-  
-  -- 상속 구조
-  parent_pattern_id UUID REFERENCES conversation_patterns(id),
-  delta_traits JSONB DEFAULT '{}',
-  /* 부모 패턴과의 차이만 저장
-     예: Level 3 → Level 4로 갈 때
-     부모: ISTJ + DC + 1
-     delta: { "wing_2_influence": ["타인 돕기", "봉사 정신"] }
-  */
-  
-  -- 패턴 데이터
-  pattern_text TEXT NOT NULL,
-  example_responses JSONB DEFAULT '[]',
-  pattern_embedding vector(1536),
-  
-  -- 품질 관리
-  quality_score FLOAT DEFAULT 0.7,
-  is_golden BOOLEAN DEFAULT false,
-  usage_count INTEGER DEFAULT 0,
-  
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  
-  -- 인덱스 최적화를 위한 복합 인덱스
-  CONSTRAINT unique_pattern UNIQUE (
-    mbti, disc, enneagram, 
-    relationship_type, pattern_category
-  )
+-- 패턴 임베딩 업데이트
+CREATE FUNCTION update_pattern_embedding(
+  pattern_id UUID,
+  embedding_vector TEXT -- JSON.stringify(number[])
+) RETURNS void;
+
+-- 유사 패턴 검색
+CREATE FUNCTION search_similar_patterns(
+  query_embedding TEXT,
+  match_threshold FLOAT DEFAULT 0.7,
+  match_count INT DEFAULT 10,
+  mbti_filter VARCHAR(4) DEFAULT NULL,
+  relationship_filter VARCHAR(50) DEFAULT NULL
+) RETURNS TABLE (
+  id UUID,
+  similarity FLOAT,
+  pattern_text TEXT
 );
 
--- 계층별 인덱스
-CREATE INDEX idx_pattern_level ON conversation_patterns(specificity_level);
-CREATE INDEX idx_pattern_parent ON conversation_patterns(parent_pattern_id);
+-- IVFFlat 인덱스
+CREATE INDEX idx_pattern_embedding ON conversation_patterns
+USING ivfflat (pattern_embedding vector_cosine_ops)
+WITH (lists = 100);
 ```
 
 ---
 
-## 🔍 계층적 검색 로직
+## 🔍 현재 검색 로직 (실제 구현)
 
-### 1. 스마트 폴백 구현
+### 1. RAG 기반 패턴 증강
+
+**파일**: `app/api/chat/route.ts`
 
 ```typescript
-// src/lib/personas/hierarchical-search.ts
+async function enrichWithConversationPatterns(
+  userMessage: string,
+  persona: any,
+  relationshipType?: string
+): Promise<string> {
+  try {
+    // 1. 사용자 메시지 임베딩 생성
+    const embedding = await generateEmbedding(userMessage);
 
-interface PatternQuery {
-  mbti: string          // "ISTJ"
-  disc: string          // "DC"
-  enneagram: string     // "1w2"
-  relationship: string  // "superior"
-  category: string      // "feedback"
-}
+    // 2. 벡터 검색으로 유사 패턴 조회
+    const similarPatterns = await searchSimilarPatterns(
+      embedding,
+      persona.mbti,
+      relationshipType,
+      5,    // 상위 5개
+      0.7   // 70% 이상 유사도
+    );
 
-async function findPatternWithFallback(query: PatternQuery) {
-  // Level 4: 완전 매칭 시도
-  let pattern = await findExactPattern(query)
-  if (pattern) {
-    return { pattern, level: 4, source: 'exact_match' }
+    if (similarPatterns.length === 0) {
+      return ''; // 유사 패턴 없으면 기본 프롬프트만 사용
+    }
+
+    // 3. 시스템 프롬프트에 추가할 컨텍스트 생성
+    const context = `\n\n## 참고할 대화 패턴\n` +
+      similarPatterns.map((p, i) =>
+        `${i + 1}. ${p.pattern_text} (유사도: ${(p.similarity * 100).toFixed(1)}%)`
+      ).join('\n');
+
+    return context;
+  } catch (error) {
+    console.error('Pattern enrichment failed:', error);
+    return '';
   }
-  
-  // Level 3: 애니어그램 날개 제거
-  const baseEnneagram = query.enneagram.split('w')[0]
-  pattern = await findExactPattern({
-    ...query,
-    enneagram: baseEnneagram
+}
+```
+
+### 2. 벡터 검색 함수
+
+**파일**: `lib/supabase/vector.ts`
+
+```typescript
+export async function searchSimilarPatterns(
+  embedding: number[],
+  mbti?: string,
+  relationshipType?: string,
+  limit: number = 10,
+  threshold: number = 0.7
+): Promise<Array<{ id: string; similarity: number; pattern_text: string }>> {
+  const supabase = getSupabaseClient()
+
+  const { data, error } = await supabase.rpc('search_similar_patterns', {
+    query_embedding: JSON.stringify(embedding),
+    match_threshold: threshold,
+    match_count: limit,
+    mbti_filter: mbti || null,
+    relationship_filter: relationshipType || null,
   })
-  
-  if (pattern) {
-    // 날개 특성만 추가
-    const enhanced = await enhanceWithWing(
-      pattern, 
-      query.enneagram
-    )
-    return { pattern: enhanced, level: 3, source: 'wing_enhanced' }
+
+  if (error) {
+    console.error('Failed to search similar patterns:', error)
+    throw new Error('Failed to search similar patterns')
   }
-  
-  // Level 2: DiSC 단순화 (주 스타일만)
-  const mainDisc = query.disc[0]
-  pattern = await findExactPattern({
-    ...query,
-    disc: mainDisc,
-    enneagram: baseEnneagram
-  })
-  
-  if (pattern) {
-    // DiSC 부 스타일 + 날개 추가
-    const enhanced = await enhanceWithDiscAndWing(
-      pattern,
-      query.disc,
-      query.enneagram
-    )
-    return { pattern: enhanced, level: 2, source: 'disc_wing_enhanced' }
-  }
-  
-  // Level 1: MBTI + 관계만
-  pattern = await findBasicPattern(
-    query.mbti,
-    query.relationship,
-    query.category
-  )
-  
-  if (pattern) {
-    // 전체 특성 생성 (GPT-4o)
-    const generated = await generateFromBase(pattern, query)
-    return { pattern: generated, level: 1, source: 'full_generation' }
-  }
-  
-  // Level 0: 완전히 새로 생성
-  const newPattern = await generateFromScratch(query)
-  return { pattern: newPattern, level: 0, source: 'scratch' }
-}
-```
 
-### 2. 특성 증강 (Enhancement) 로직
-
-```typescript
-// 애니어그램 날개 특성 추가
-async function enhanceWithWing(
-  basePattern: Pattern,
-  enneagram: string
-): Promise<Pattern> {
-  const [type, wing] = enneagram.split('w')
-  
-  // 날개 특성 로드
-  const wingTraits = await getWingTraits(type, wing)
-  
-  // GPT-4o로 통합
-  const prompt = `
-기본 패턴:
-${basePattern.pattern_text}
-
-응답 예시:
-${basePattern.example_responses.join('\n')}
-
-애니어그램 ${type}번의 w${wing} 날개 특성을 반영하여
-위 패턴을 자연스럽게 개선하세요.
-
-날개 특성:
-${wingTraits.join(', ')}
-
-기존 패턴의 핵심은 유지하되, 날개의 미묘한 영향을 추가하세요.
-  `
-  
-  const enhanced = await gpt4o.enhance(prompt)
-  
-  return {
-    ...basePattern,
-    pattern_text: enhanced.pattern_text,
-    example_responses: enhanced.example_responses,
-    specificity_level: 4,
-    parent_pattern_id: basePattern.id,
-    delta_traits: { wing_influence: wingTraits }
-  }
-}
-
-// DiSC 부 스타일 + 날개 추가
-async function enhanceWithDiscAndWing(
-  basePattern: Pattern,
-  disc: string,
-  enneagram: string
-): Promise<Pattern> {
-  const mainStyle = disc[0]
-  const subStyle = disc[1] || mainStyle
-  
-  const prompt = `
-기본 패턴 (${basePattern.mbti} + ${mainStyle} + ${enneagram.split('w')[0]}):
-${basePattern.pattern_text}
-
-추가할 특성:
-1. DiSC 부 스타일 ${subStyle}: ${getDiscTraits(subStyle)}
-2. 애니어그램 날개 ${enneagram}: ${getWingTraits(enneagram)}
-
-이 두 가지 특성을 자연스럽게 통합하세요.
-  `
-  
-  const enhanced = await gpt4o.enhance(prompt)
-  
-  return {
-    ...basePattern,
-    ...enhanced,
-    specificity_level: 4,
-    parent_pattern_id: basePattern.id
-  }
+  return data || []
 }
 ```
 
 ---
 
-## 📊 골든 데이터셋 전략
+## 📊 골든 데이터셋 전략 (진행 필요)
 
-### 계층별 데이터 분배
+### 현재 상태
+- ❌ **골든 패턴 수**: 0개 (미생성)
+- ✅ **인프라**: 벡터 검색 준비 완료
+- ✅ **스키마**: conversation_patterns 테이블 설정 완료
+
+### Phase 1 목표 (긴급)
+
+**최소 골든 데이터셋**: 50-100개
 
 ```typescript
-// Level 1: MBTI + 관계 (기본 골든)
-// 16 MBTI × 3 관계 × 7 카테고리 = 336개
-// → 수동 작성 (최고 품질)
+// 우선순위 조합 (실제 사용 빈도 기반)
+const priorityCombinations = [
+  // 1. 가장 흔한 MBTI (한국 기준)
+  { mbti: "ISTJ", disc: "C", enneagram: "1", relationships: ["superior", "peer"] },
+  { mbti: "ISFJ", disc: "S", enneagram: "2", relationships: ["peer", "subordinate"] },
+  { mbti: "ESTJ", disc: "D", enneagram: "8", relationships: ["superior"] },
 
-const level1Golden = [
-  { mbti: "ISTJ", relationship: "superior", category: "feedback" },
-  { mbti: "ISTJ", relationship: "peer", category: "greeting" },
-  // ... 336개
+  // 2. 대표적인 대비 성향
+  { mbti: "ENTP", disc: "D", enneagram: "7", relationships: ["peer"] },
+  { mbti: "INFP", disc: "I", enneagram: "4", relationships: ["peer"] },
+
+  // ... 총 50개 조합 × 다양한 상황 = 100-200개 패턴
 ]
-
-// Level 2: MBTI + DiSC 주 + 관계
-// 16 MBTI × 4 DiSC(D,I,S,C) × 3 관계 = 192개 조합
-// 각 카테고리 1개씩만 = 192 × 7 = 1,344개
-// → 50-100개만 선별 작성
-
-const level2Representative = [
-  { mbti: "ISTJ", disc: "C", relationship: "superior" },
-  { mbti: "ENTP", disc: "D", relationship: "peer" },
-  // ... 100개 정도
-]
-
-// Level 3: MBTI + DiSC 세부 + 애니어그램 기본
-// 자주 사용되는 조합 20-30개만
-// → 나머지는 Level 2에서 자동 생성
-
-const level3Popular = [
-  { mbti: "ISTJ", disc: "CS", enneagram: "1" },
-  { mbti: "ENTP", disc: "DI", enneagram: "7" },
-  // ... 30개
-]
-
-// Level 4: 완전체
-// → 모두 온디맨드 생성
 ```
 
-### 통계 기반 우선순위
+### 골든 패턴 예시 구조
 
-```typescript
-// 실제 MBTI 분포 (한국 기준)
-const mbtiDistribution = {
-  "ISTJ": 0.13,  // 13%
-  "ISFJ": 0.11,
-  "ESTJ": 0.10,
-  "ESFJ": 0.09,
-  // ... 
-  "INFJ": 0.02,  // 2% (희소)
-  "INTJ": 0.02
-}
-
-// DiSC 일반적 분포
-const discDistribution = {
-  "D": 0.10,
-  "I": 0.30,
-  "S": 0.35,
-  "C": 0.25
-}
-
-// 조합 확률 계산
-function calculateCombinationPriority(combo) {
-  const mbtiProb = mbtiDistribution[combo.mbti]
-  const discProb = discDistribution[combo.disc[0]]
-  
-  // 확률이 높은 조합 우선
-  return mbtiProb * discProb
-}
-
-// 우선순위 순으로 생성
-const sortedCombos = allCombinations
-  .map(c => ({ ...c, priority: calculateCombinationPriority(c) }))
-  .sort((a, b) => b.priority - a.priority)
-  .slice(0, 500) // 상위 500개만
-```
-
----
-
-## 🚀 점진적 확장 전략
-
-### Phase 1: 핵심 골든 데이터 (Week 1)
-```typescript
-목표: 400개 패턴
-- Level 1: 336개 (MBTI + 관계 전체)
-- Level 2: 64개 (자주 쓰이는 조합)
-
-커버리지: 0.4% (400 / 96,768)
-하지만 실제 요청의 60%는 커버 가능 (빈도 기반)
-```
-
-### Phase 2: 자동 확장 (Week 2-4)
-```typescript
-목표: 2,000개 패턴
-- Level 2: 200개 (통계 기반)
-- Level 3: 1,400개 (온디맨드 생성)
-
-커버리지: 2% 
-실제 커버: 85%
-```
-
-### Phase 3: 롱테일 대응 (Month 2-3)
-```typescript
-목표: 10,000개 패턴
-- 사용자 요청 기반 생성
-- 백그라운드 시딩
-
-커버리지: 10%
-실제 커버: 95%+
-```
-
----
-
-## 💻 캐싱 및 성능 최적화
-
-### 3단계 캐싱
-
-```typescript
-// L1: 메모리 캐시 (자주 사용되는 100개)
-const memoryCache = new LRU<string, Pattern>({ max: 100 })
-
-// L2: Redis (Level 3-4 패턴, TTL 7일)
-const redisCache = new Redis(process.env.REDIS_URL)
-
-// L3: PostgreSQL (영구 저장)
-const db = supabase
-
-async function getPatternCached(query: PatternQuery) {
-  const key = generateCacheKey(query)
-  
-  // L1: 메모리
-  let pattern = memoryCache.get(key)
-  if (pattern) return pattern
-  
-  // L2: Redis
-  const cached = await redisCache.get(key)
-  if (cached) {
-    pattern = JSON.parse(cached)
-    memoryCache.set(key, pattern)
-    return pattern
-  }
-  
-  // L3: DB + 계층적 폴백
-  pattern = await findPatternWithFallback(query)
-  
-  // 캐싱
-  await redisCache.setex(key, 7 * 24 * 3600, JSON.stringify(pattern))
-  memoryCache.set(key, pattern)
-  
-  return pattern
-}
-```
-
----
-
-## 📈 예상 성능
-
-### 응답 시간
-
-| 케이스 | 시간 | 히트율 |
-|--------|------|--------|
-| **L1 캐시 히트** | < 1ms | 20% |
-| **L2 캐시 히트** | < 50ms | 40% |
-| **Level 4 매칭** | < 100ms | 15% |
-| **Level 3 폴백** | < 500ms | 15% |
-| **Level 2 폴백** | < 2s | 8% |
-| **Level 1 생성** | < 5s | 2% |
-
-### 누적 커버리지
-
-```
-Day 1:   400 패턴 (60% 요청 커버)
-Week 1:  1,000 패턴 (75% 요청 커버)
-Month 1: 5,000 패턴 (90% 요청 커버)
-Month 3: 15,000 패턴 (97% 요청 커버)
-```
-
----
-
-## 🎯 구현 우선순위
-
-### 필수 (Phase 1)
-- ✅ Level 1-2 골든 데이터 400개
-- ✅ 계층적 폴백 로직
-- ✅ GPT-4o 증강 로직
-- ✅ Redis 캐싱
-
-### 권장 (Phase 2)
-- ⭐ 통계 기반 우선순위
-- ⭐ 백그라운드 시딩
-- ⭐ 품질 점수 시스템
-
-### 선택 (Phase 3)
-- 💡 A/B 테스팅
-- 💡 사용자 피드백 루프
-- 💡 자동 품질 개선
-
----
-
-**핵심**: 13,824개 조합을 모두 준비하지 않고도,
-계층적 폴백으로 95%+ 요청을 고품질로 처리 가능!
-
----
-
-## 🤖 해결 전략: 하이브리드 RAG
-
-### 핵심 원리
-
-```
-골든 데이터셋 (50-100개)
-    ↓
-pgvector 유사도 검색
-    ↓
-GPT-4o 맥락 기반 생성
-    ↓
-품질 검증 및 저장
-    ↓
-점진적 학습 (새 골든 데이터)
-```
-
----
-
-## 📝 구현 설계
-
-### 1. 골든 데이터셋 설계
-
-#### 선정 기준
-```typescript
-// 대표성: 각 심리 프로필의 전형적 조합
-const goldenCombinations = [
-  // MBTI 각 유형 대표
-  { mbti: "ISTJ", disc: "CS", enneagram: "1w2" },  // 완벽주의 관리자
-  { mbti: "ENTP", disc: "DI", enneagram: "7w8" },  // 혁신적 도전자
-  { mbti: "INFP", disc: "IS", enneagram: "4w5" },  // 이상주의 예술가
-  
-  // DiSC 각 스타일 대표
-  { mbti: "ESTJ", disc: "DC", enneagram: "8w7" },  // 주도적 리더
-  { mbti: "ESFJ", disc: "IS", enneagram: "2w1" },  // 사교적 조력자
-  { mbti: "ISFJ", disc: "SC", enneagram: "6w5" },  // 안정적 지원자
-  
-  // 애니어그램 각 유형 대표
-  { mbti: "INTJ", disc: "CD", enneagram: "5w6" },  // 전략적 분석가
-  { mbti: "ENFJ", disc: "ID", enneagram: "3w2" },  // 카리스마 성취자
-  { mbti: "ISTP", disc: "DC", enneagram: "9w8" },  // 평화로운 실용가
-  
-  // ... 총 50-100개
-]
-
-// 각 조합마다 관계 3가지 × 카테고리 7가지 = 21개 패턴
-// 총 50개 조합 × 21개 패턴 = 1,050개 골든 패턴
-```
-
-#### 골든 패턴 예시
 ```json
 {
-  "id": "uuid",
   "mbti": "ISTJ",
-  "disc": "CS",
-  "enneagram": "1w2",
+  "disc": "C",
+  "enneagram": "1",
   "relationship_type": "superior",
   "pattern_category": "feedback",
-  "pattern_text": "부하 직원의 실수에 대해 건설적 피드백 제공",
+  "conversation_topic": "부하 직원의 실수 지적",
+  "emotional_context": "진지하고 체계적",
+  "pattern_text": "부하 직원의 실수에 대해 건설적 피드백을 제공합니다. 사실에 기반하여 문제점을 명확히 지적하되, 개선 방안을 구체적으로 제시합니다.",
   "example_responses": [
     "이번 실수를 통해 배운 점이 있다면 무엇인가요?",
-    "다음부터는 체크리스트를 활용해보세요.",
-    "정확성을 높이기 위한 프로세스를 만들어봅시다."
+    "다음부터는 체크리스트를 활용해보는 것이 어떨까요?",
+    "정확성을 높이기 위한 프로세스를 같이 만들어봅시다."
   ],
-  "quality_score": 1.0,  // 수동 작성 = 최고 품질
-  "is_golden": true,
-  "pattern_embedding": [0.123, -0.456, ...],
-  "created_by": "manual"
+  "effectiveness_score": 0.9,
+  "usage_frequency": 0
 }
 ```
 
 ---
 
-### 2. 유사 패턴 검색 로직
+## 💻 현재 성능 특성
+
+### 응답 시간 (실측 기반)
+
+| 단계 | 시간 | 설명 |
+|-----|------|------|
+| **임베딩 생성** | ~200-500ms | OpenAI API 호출 |
+| **벡터 검색** | ~50-100ms | pgvector + IVFFlat 인덱스 |
+| **GPT-4o 응답** | ~2-5s | 스트리밍 응답 |
+| **총 시간** | ~2.5-6s | 골든 패턴 있을 때 |
+
+### 패턴 없을 때
+- 벡터 검색 결과 0개 → 기본 프롬프트만 사용
+- 시간: ~2-5s (GPT-4o 응답만)
+
+---
+
+## 🎯 다음 단계 (우선순위)
+
+### 긴급 (Week 1)
+1. **골든 데이터셋 생성**
+   - [ ] 50개 핵심 조합 선정
+   - [ ] 조합당 2-5개 상황별 패턴 작성
+   - [ ] 총 100-200개 골든 패턴 생성
+   - [ ] Supabase에 임베딩과 함께 저장
+
+2. **품질 검증**
+   - [ ] 실제 대화에서 패턴 활용 테스트
+   - [ ] 유사도 threshold 조정 (현재 0.7)
+   - [ ] 검색 결과 개수 최적화 (현재 5개)
+
+### 중요 (Week 2-3)
+3. **자동 패턴 생성 파이프라인**
+   - [ ] 누락된 조합 자동 탐지
+   - [ ] GPT-4o 기반 패턴 생성 스크립트
+   - [ ] 생성된 패턴 품질 검증 로직
+
+4. **성능 최적화**
+   - [ ] Redis 캐싱 (선택사항)
+   - [ ] 임베딩 배치 생성
+   - [ ] 벡터 인덱스 튜닝
+
+### 향후 (Phase 2)
+5. **계층적 폴백 시스템**
+   - ✅ DiSC 세부 조합 이미 지원됨 (DC, DI, IS, SC 등 12가지)
+   - [ ] 애니어그램 날개 지원 (1w2, 1w9 등)
+   - [ ] Level별 폴백 로직 구현
+
+---
+
+## 📝 골든 데이터 생성 가이드
+
+### 1. 조합 선정 기준
+
+**MBTI 분포 우선순위** (한국 기준)
+- High: ISTJ, ISFJ, ESTJ, ESFJ (13-10%)
+- Medium: ISTP, ISFP, ESTP, ESFP (8-6%)
+- Low: INTJ, INFJ, ENTJ, ENFJ (4-2%)
+
+**DiSC 16가지** ✅ 모두 사용 가능
+- 기본형 (4): D, I, S, C
+- 조합형 (12): DI, DC, DS, ID, IS, IC, SI, SC, SD, CI, CD, CS
+
+**애니어그램 기본형** (Phase 1)
+- 1-9 (날개 없이)
+
+**관계 타입**
+- superior, peer, subordinate
+
+**우선순위 조합 예시**:
+```typescript
+// High Priority (빈도 높음 + 뚜렷한 특성)
+{ mbti: "ISTJ", disc: "DC", enneagram: "1" },  // 주도적 신중형 완벽주의자
+{ mbti: "ESFJ", disc: "IS", enneagram: "2" },  // 사교적 안정형 조력자
+{ mbti: "ESTJ", disc: "DI", enneagram: "8" },  // 주도적 사교형 도전자
+
+// Medium Priority (특색있는 조합)
+{ mbti: "ENTP", disc: "DI", enneagram: "7" },  // 주도적 사교형 열정가
+{ mbti: "INFP", disc: "IS", enneagram: "4" },  // 사교적 안정형 개인주의자
+{ mbti: "INTJ", disc: "CD", enneagram: "5" },  // 신중한 주도형 탐구자
+```
+
+---
+
+### 2. 패턴 작성 템플릿
 
 ```typescript
-// src/lib/personas/similarity.ts
+// scripts/create-golden-pattern.ts
 
-interface PersonaInput {
+interface GoldenPattern {
+  mbti: string
+  disc: string
+  enneagram: string
+  relationship_type: string
+  pattern_category: string
+  conversation_topic: string
+  emotional_context: string
+  pattern_text: string
+  example_responses: string[]
+  effectiveness_score: number
+}
+
+// 예시 1: ISTJ + DC + 1 + superior (DiSC 조합 활용)
+const examplePattern1: GoldenPattern = {
+  mbti: "ISTJ",
+  disc: "DC",  // 주도적 신중형 (조합)
+  enneagram: "1",
+  relationship_type: "superior",
+  pattern_category: "feedback",
+  conversation_topic: "업무 실수 지적 및 개선 요청",
+  emotional_context: "진지하고 체계적이며 건설적",
+  pattern_text: "부하 직원의 업무 실수를 발견했을 때, 데이터를 분석하여 정확하고 빠른 결정을 내립니다. 완벽주의 성향으로 인해 디테일에 민감하며, 전략적이고 체계적인 프로세스 개선을 중요시합니다.",
+  example_responses: [
+    "이 부분에서 정확히 어떤 단계를 놓쳤는지 확인해 주시겠어요?",
+    "데이터를 보니 이 프로세스에 개선이 필요합니다. 같이 개선안을 만들어봅시다.",
+    "다음에는 체크리스트를 활용하면 이런 실수를 방지할 수 있을 것 같습니다.",
+    "이번 경험을 토대로 표준 절차를 문서화하면 좋겠어요."
+  ],
+  effectiveness_score: 0.9
+}
+
+// 예시 2: ESFJ + IS + 2 + peer
+const examplePattern2: GoldenPattern = {
+  mbti: "ESFJ",
+  disc: "IS",  // 사교적 안정형 (조합)
+  enneagram: "2",
+  relationship_type: "peer",
+  pattern_category: "support",
+  conversation_topic: "동료의 어려움 공감 및 지원",
+  emotional_context: "따뜻하고 우호적이며 지지적",
+  pattern_text: "동료가 어려움을 겪을 때, 사람들과 조화롭게 일하며 안정적인 관계를 만듭니다. 타인을 돕고 필요한 존재가 되고자 하며, 팀워크와 감정이입을 중시합니다.",
+  example_responses: [
+    "많이 힘들었겠어요. 제가 도울 수 있는 게 있을까요?",
+    "걱정하지 마세요. 우리가 함께 해결해나갈 수 있어요.",
+    "필요하면 언제든지 말씀해 주세요. 제가 옆에서 도와드릴게요.",
+    "이런 상황에서는 누구나 어려울 수 있어요. 같이 방법을 찾아봐요."
+  ],
+  effectiveness_score: 0.85
+}
+```
+
+---
+
+### 3. 골든 패턴 생성 스크립트
+
+```typescript
+// scripts/seed-golden-patterns.ts
+
+import { generateEmbedding } from '@/lib/embeddings'
+import { storePatternEmbedding } from '@/lib/supabase/vector'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY! // Admin key
+)
+
+async function seedGoldenPattern(pattern: GoldenPattern) {
+  // 1. 패턴 텍스트로 임베딩 생성
+  const embeddingText = `
+    MBTI: ${pattern.mbti}
+    DISC: ${pattern.disc}
+    Enneagram: ${pattern.enneagram}
+    Relationship: ${pattern.relationship_type}
+    Category: ${pattern.pattern_category}
+    Topic: ${pattern.conversation_topic}
+    Context: ${pattern.emotional_context}
+    Pattern: ${pattern.pattern_text}
+  `.trim()
+
+  const embedding = await generateEmbedding(embeddingText)
+
+  // 2. DB에 패턴 저장
+  const { data, error } = await supabase
+    .from('conversation_patterns')
+    .insert({
+      mbti: pattern.mbti,
+      disc: pattern.disc,
+      enneagram: pattern.enneagram,
+      relationship_type: pattern.relationship_type,
+      pattern_category: pattern.pattern_category,
+      conversation_topic: pattern.conversation_topic,
+      emotional_context: pattern.emotional_context,
+      pattern_text: pattern.pattern_text,
+      example_responses: pattern.example_responses,
+      effectiveness_score: pattern.effectiveness_score,
+      usage_frequency: 0,
+    })
+    .select()
+    .single()
+
+  if (error) throw error
+
+  // 3. 임베딩 저장 (RPC 함수 사용)
+  await storePatternEmbedding(data.id, embedding)
+
+  console.log(`✅ Created golden pattern: ${pattern.mbti}+${pattern.disc}+${pattern.enneagram} (${pattern.relationship_type})`)
+}
+
+// 골든 패턴 배치 생성
+async function seedAllGoldenPatterns() {
+  const patterns: GoldenPattern[] = [
+    // TODO: 50-100개 패턴 정의
+    examplePattern,
+    // ... 추가 패턴
+  ]
+
+  for (const pattern of patterns) {
+    await seedGoldenPattern(pattern)
+    await new Promise(resolve => setTimeout(resolve, 500)) // Rate limiting
+  }
+
+  console.log(`✅ Seeded ${patterns.length} golden patterns`)
+}
+
+seedAllGoldenPatterns().catch(console.error)
+```
+
+---
+
+## 📊 향후 개선 사항 (Phase 2+)
+
+### 자동 패턴 생성 파이프라인 (미구현)
+
+```typescript
+// 향후 구현 예정 - scripts/auto-generate-patterns.ts
+
+/**
+ * GPT-4o를 사용하여 누락된 조합의 패턴을 자동 생성
+ */
+async function autoGeneratePattern(input: {
   mbti: string
   disc: string
   enneagram: string
   relationship: string
   category: string
-}
+}) {
+  // 1. 유사 골든 패턴 검색
+  const similarPatterns = await searchSimilarPatterns(...)
 
-async function findSimilarPatterns(input: PersonaInput) {
-  // 1. 입력을 텍스트로 변환
-  const queryText = `
-    MBTI ${input.mbti}: ${getMBTIDescription(input.mbti)}
-    DiSC ${input.disc}: ${getDiSCDescription(input.disc)}
-    애니어그램 ${input.enneagram}: ${getEnneagramDescription(input.enneagram)}
-    관계: ${input.relationship}
-    카테고리: ${input.category}
-  `
-  
-  // 2. 임베딩 생성
-  const embedding = await createEmbedding(queryText)
-  
-  // 3. pgvector 유사도 검색
-  const { data: similar } = await supabase.rpc('search_similar_patterns', {
-    query_embedding: embedding,
-    target_mbti: input.mbti,
-    target_disc: input.disc,
-    target_enneagram: input.enneagram,
-    target_relationship: input.relationship,
-    match_threshold: 0.7,
-    match_count: 5
-  })
-  
-  // 4. 품질 점수 순으로 정렬
-  return similar
-    .sort((a, b) => b.quality_score - a.quality_score)
-    .slice(0, 3) // 상위 3개만
+  // 2. GPT-4o로 새 패턴 생성
+  const generated = await generatePatternWithGPT4o(input, similarPatterns)
+
+  // 3. 품질 검증 후 저장
+  if (validateQuality(generated) > 0.7) {
+    await savePattern(generated)
+  }
 }
 ```
 
----
-
-### 3. AI 기반 패턴 생성
+### 캐싱 시스템 (미구현)
 
 ```typescript
-// src/lib/personas/generator.ts
-
-async function generatePattern(input: PersonaInput) {
-  // 1. 유사 패턴 검색
-  const similarPatterns = await findSimilarPatterns(input)
-  
-  if (similarPatterns.length === 0) {
-    // 유사 패턴 없음 → 기본 매핑 사용
-    return generateFromBaseMapping(input)
-  }
-  
-  // 2. GPT-4o 프롬프트 구성
-  const prompt = buildGenerationPrompt(input, similarPatterns)
-  
-  // 3. GPT-4o 호출
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o",
-    messages: [
-      {
-        role: "system",
-        content: PATTERN_GENERATION_SYSTEM_PROMPT
-      },
-      {
-        role: "user",
-        content: prompt
-      }
-    ],
-    temperature: 0.7,
-    response_format: { type: "json_object" }
-  })
-  
-  // 4. 결과 파싱 및 검증
-  const generated = JSON.parse(response.choices[0].message.content)
-  
-  // 5. 품질 검증
-  const qualityScore = await validateQuality(generated, similarPatterns)
-  
-  // 6. 임베딩 생성
-  const embedding = await createEmbedding(generated.pattern_text)
-  
-  // 7. DB 저장
-  const { data: saved } = await supabase
-    .from('conversation_patterns')
-    .insert({
-      ...input,
-      pattern_text: generated.pattern_text,
-      example_responses: generated.example_responses,
-      pattern_embedding: embedding,
-      quality_score: qualityScore,
-      is_golden: false,
-      created_by: "ai_generated"
-    })
-    .select()
-    .single()
-  
-  return saved
-}
-```
-
----
-
-### 4. 프롬프트 설계
-
-```typescript
-const PATTERN_GENERATION_SYSTEM_PROMPT = `
-당신은 심리학 전문가이자 대화 패턴 생성 전문가입니다.
-
-역할:
-1. MBTI, DiSC, 애니어그램 이론을 깊이 이해
-2. 각 심리 프로필 조합의 특성을 정확히 분석
-3. 관계(상급자/동료/하급자)에 맞는 대화 패턴 생성
-4. 자연스럽고 일관된 한국어 대화 예시 작성
-
-출력 형식:
-{
-  "pattern_text": "상황 설명",
-  "example_responses": ["응답1", "응답2", "응답3"],
-  "rationale": "이 패턴이 적절한 이유"
-}
-`
-
-function buildGenerationPrompt(
-  input: PersonaInput, 
-  similar: SimilarPattern[]
-) {
-  return `
-다음 심리 프로필 조합에 대한 대화 패턴을 생성하세요:
-
-[대상 프로필]
-- MBTI: ${input.mbti}
-  특성: ${getMBTITraits(input.mbti).join(', ')}
-  
-- DiSC: ${input.disc}
-  행동: ${getDiSCBehavior(input.disc)}
-  
-- 애니어그램: ${input.enneagram}
-  동기: ${getEnneagramMotivation(input.enneagram)}
-
-[관계 및 상황]
-- 관계: ${input.relationship} (${getRelationshipDescription(input.relationship)})
-- 카테고리: ${input.category}
-- 상황: ${getCategoryContext(input.category)}
-
-[참고할 유사 패턴]
-${similar.map((p, i) => `
-패턴 ${i + 1}: ${p.mbti}+${p.disc}+${p.enneagram} (유사도: ${p.similarity.toFixed(2)})
-- 상황: ${p.pattern_text}
-- 예시: ${p.example_responses.slice(0, 2).join(' / ')}
-`).join('\n')}
-
-[생성 지침]
-1. 대상 프로필의 고유한 특성을 정확히 반영하세요
-2. MBTI는 사고/판단 방식에, DiSC는 행동 스타일에, 애니어그램은 근본 동기에 영향을 줍니다
-3. 관계에 맞는 언어(존댓말/반말)와 거리감을 유지하세요
-4. 자연스럽고 현실적인 대화 예시를 작성하세요
-5. 유사 패턴을 참고하되, 대상 프로필만의 독특함을 표현하세요
-
-JSON 형식으로 출력하세요.
-`
-}
-```
-
----
-
-### 5. 품질 검증 로직
-
-```typescript
-async function validateQuality(
-  generated: GeneratedPattern,
-  similarPatterns: SimilarPattern[]
-): Promise<number> {
-  let score = 0.5 // 기본 점수
-  
-  // 1. 응답 개수 확인 (3개 이상)
-  if (generated.example_responses.length >= 3) {
-    score += 0.1
-  }
-  
-  // 2. 응답 길이 확인 (너무 짧거나 길지 않은지)
-  const avgLength = generated.example_responses
-    .map(r => r.length)
-    .reduce((a, b) => a + b, 0) / generated.example_responses.length
-  
-  if (avgLength >= 10 && avgLength <= 100) {
-    score += 0.1
-  }
-  
-  // 3. 유사 패턴과의 일관성 (너무 비슷하지도, 다르지도 않게)
-  const similarities = await Promise.all(
-    similarPatterns.map(async (p) => {
-      const genEmbed = await createEmbedding(generated.pattern_text)
-      return cosineSimilarity(genEmbed, p.pattern_embedding)
-    })
-  )
-  
-  const avgSimilarity = similarities.reduce((a, b) => a + b, 0) / similarities.length
-  
-  if (avgSimilarity >= 0.6 && avgSimilarity <= 0.85) {
-    score += 0.2 // 적절한 유사도
-  }
-  
-  // 4. 키워드 포함 확인
-  const requiredKeywords = extractKeywords(generated.pattern_text)
-  const hasKeywords = requiredKeywords.some(kw => 
-    generated.example_responses.some(r => r.includes(kw))
-  )
-  
-  if (hasKeywords) {
-    score += 0.1
-  }
-  
-  return Math.min(score, 1.0)
-}
-```
-
----
-
-### 6. 캐싱 전략
-
-```typescript
-// src/lib/cache/redis.ts
-
-import { Redis } from 'ioredis'
-
-const redis = new Redis(process.env.REDIS_URL)
-
-async function getCachedPattern(key: string) {
-  const cached = await redis.get(`pattern:${key}`)
-  return cached ? JSON.parse(cached) : null
-}
-
-async function setCachedPattern(key: string, pattern: any) {
-  // TTL: 7일 (자주 사용되면 자동 갱신)
-  await redis.setex(
-    `pattern:${key}`, 
-    7 * 24 * 60 * 60, 
-    JSON.stringify(pattern)
-  )
-}
-
-// 페르소나 생성 시 캐시 활용
-async function createPersonaWithCache(input: PersonaInput) {
-  const cacheKey = `${input.mbti}:${input.disc}:${input.enneagram}:${input.relationship}:${input.category}`
-  
-  // 1. 캐시 확인
-  let pattern = await getCachedPattern(cacheKey)
-  
-  if (pattern) {
-    // 캐시 히트 → 즉시 반환
-    return pattern
-  }
-  
-  // 2. 캐시 미스 → 생성
-  pattern = await generatePattern(input)
-  
-  // 3. 캐시 저장
-  await setCachedPattern(cacheKey, pattern)
-  
-  return pattern
-}
-```
-
----
-
-### 7. 백그라운드 시딩 (선택사항)
-
-```typescript
-// scripts/background-seeding.ts
+// 향후 구현 예정 - lib/cache/pattern-cache.ts
 
 /**
- * 사용 빈도가 높은 조합을 백그라운드에서 미리 생성
- * Vercel Cron 또는 Supabase Edge Functions로 주기 실행
+ * Redis를 사용한 패턴 캐싱
+ * 자주 사용되는 조합을 메모리에 캐시
  */
-
-export async function seedPopularCombinations() {
-  // 1. 사용 통계 조회
-  const { data: stats } = await supabase
-    .from('persona_profiles')
-    .select('mbti, disc, enneagram')
-    .order('usage_count', { ascending: false })
-    .limit(100)
-  
-  // 2. 아직 패턴이 없는 조합 찾기
-  const missingCombinations = await findMissingPatterns(stats)
-  
-  // 3. 배치 생성 (한 번에 10개씩)
-  for (let i = 0; i < missingCombinations.length; i += 10) {
-    const batch = missingCombinations.slice(i, i + 10)
-    
-    await Promise.all(
-      batch.map(combo => 
-        generateAllPatternsForCombination(combo)
-      )
-    )
-    
-    console.log(`Seeded ${i + batch.length} / ${missingCombinations.length}`)
-  }
-}
-
-async function generateAllPatternsForCombination(combo: Combination) {
-  const relationships = ['superior', 'peer', 'subordinate']
-  const categories = [
-    'greeting', 'feedback', 'conflict', 
-    'celebration', 'stress_response', 
-    'decision_making', 'information_sharing'
-  ]
-  
-  for (const rel of relationships) {
-    for (const cat of categories) {
-      await generatePattern({
-        ...combo,
-        relationship: rel,
-        category: cat
-      })
-    }
-  }
-}
+const patternCache = new LRU({ max: 100 })
 ```
 
 ---
 
-## 📊 성능 최적화
+## 📝 요약
 
-### 생성 시간 목표
+### ✅ 현재 완료
+1. pgvector 벡터 검색 인프라
+2. 임베딩 생성 함수
+3. RAG 기반 대화 증강 로직
+4. RLS 정책 설정
 
-| 시나리오 | 목표 시간 | 전략 |
-|---------|----------|------|
-| **캐시 히트** | < 100ms | Redis 캐싱 |
-| **유사 패턴 있음** | < 3초 | GPT-4o 1회 호출 |
-| **유사 패턴 없음** | < 5초 | 기본 매핑 + GPT-4o |
-| **백그라운드 시딩** | 비동기 | 사용자 영향 없음 |
+### 🚧 진행 필요 (긴급)
+1. **골든 데이터셋 생성** (50-100개)
+   - 우선순위 조합 선정
+   - 패턴 작성 및 임베딩 생성
+   - Supabase 저장
 
-### 비용 최적화
+2. **품질 검증**
+   - 실제 대화 테스트
+   - 파라미터 튜닝 (threshold, limit)
 
-```typescript
-// 1. 토큰 사용량 제한
-const MAX_PROMPT_TOKENS = 2000
-const MAX_COMPLETION_TOKENS = 500
-
-// 2. 캐싱으로 중복 생성 방지
-// 3. 배치 처리로 API 호출 최소화
-```
-
----
-
-## 🎯 단계별 구현 계획
-
-### Phase 1: 기본 시스템 (Week 1)
-- [ ] 골든 데이터셋 50개 작성
-- [ ] 유사 패턴 검색 구현
-- [ ] 기본 생성 로직 구현
-
-### Phase 2: 품질 개선 (Week 2)
-- [ ] GPT-4o 프롬프트 최적화
-- [ ] 품질 검증 로직 구현
-- [ ] 테스트 및 개선
-
-### Phase 3: 최적화 (Week 3)
-- [ ] Redis 캐싱 구현
-- [ ] 백그라운드 시딩 구현
-- [ ] 성능 모니터링
-
-### Phase 4: 학습 루프 (Week 4)
-- [ ] 사용자 피드백 수집
-- [ ] 낮은 품질 패턴 재생성
-- [ ] 점진적 품질 개선
+### 🔮 향후 계획 (Phase 2)
+1. 계층적 폴백 시스템
+2. 자동 패턴 생성 파이프라인
+3. Redis 캐싱
+4. 백그라운드 시딩
 
 ---
 
-## 📈 예상 효과
+## 🔗 관련 파일
 
-### 커버리지
-```
-Week 1: 50개 조합 (골든 데이터)
-Week 2: 200개 조합 (인기 조합 생성)
-Week 3: 500개 조합 (온디맨드 생성)
-Week 4: 1000+ 조합 (지속적 확장)
-```
+**구현 파일**
+- `lib/embeddings.ts` - 임베딩 생성
+- `lib/supabase/vector.ts` - 벡터 검색
+- `app/api/chat/route.ts` - RAG 증강 로직
+- `prisma/schema.prisma` - 데이터 스키마
+- `prisma/migrations/vector_search_functions.sql` - pgvector 함수
 
-### 품질
-```
-골든 데이터: 1.0 (수동 작성)
-AI 생성 (유사 패턴 있음): 0.8-0.9
-AI 생성 (유사 패턴 없음): 0.6-0.7
-개선 후: 0.85+ (피드백 반영)
-```
+**문서**
+- `docs/VECTOR_GUIDE.md` - 벡터 검색 가이드
+- `docs/requirements.md` - 전체 요구사항
 
 ---
 
-**다음 단계**: `docs/requirements.md`에 AI 생성 로직 추가
+**다음 작업**: 골든 패턴 50개 작성 및 시딩 스크립트 실행

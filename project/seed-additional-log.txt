@@ -1,0 +1,409 @@
+[dotenv@17.2.3] injecting env (6) from .env.local -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+🌱 추가 골든 패턴 시딩 시작
+
+총 66개 패턴을 추가합니다.
+
+[1/66] INFJ+I+4 / superior
+   카테고리: inspiring
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 82878091-b206-493a-98cc-b5d2cfdf65f4)
+   ✓ 임베딩 저장 완료
+
+[2/66] ISTP+C+5 / superior
+   카테고리: reporting
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 8b533287-fbe2-4735-a404-f87d2caa07b3)
+   ✓ 임베딩 저장 완료
+
+[3/66] ISFP+S+4 / superior
+   카테고리: presenting
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 5884d6b5-501b-40da-b56a-5e00fe659d42)
+   ✓ 임베딩 저장 완료
+
+[4/66] ISFP+IS+9 / subordinate
+   카테고리: guiding
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: abcf92bb-908b-4bc2-a2e7-69d9a07090f5)
+   ✓ 임베딩 저장 완료
+
+[5/66] INFP+I+4 / superior
+   카테고리: advocating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 4f570165-2e2e-45ad-b07f-02f9d694ff49)
+   ✓ 임베딩 저장 완료
+
+[6/66] INFP+IS+9 / subordinate
+   카테고리: mentoring
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: e014ca1a-13d6-4965-b6d2-ed8c16eba8d6)
+   ✓ 임베딩 저장 완료
+
+[7/66] INTP+C+5 / superior
+   카테고리: analysis
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 228ca7e1-9f35-4cf9-a62d-3ba702a5f781)
+   ✓ 임베딩 저장 완료
+
+[8/66] INTP+CI+4 / subordinate
+   카테고리: teaching
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: db6bef8f-98f9-42f8-95a0-d075b93d55b1)
+   ✓ 임베딩 저장 완료
+
+[9/66] ESTP+D+7 / superior
+   카테고리: quick_decision
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 37778efb-15e8-4d0d-9aa9-b1b0dca6a28e)
+   ✓ 임베딩 저장 완료
+
+[10/66] ESFP+I+7 / superior
+   카테고리: celebrating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: d82512ca-ea66-4950-bf22-e9680a27bd21)
+   ✓ 임베딩 저장 완료
+
+[11/66] ENFP+I+7 / superior
+   카테고리: innovating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 005bc12f-07c8-4d2d-bbb0-f4a4b73364c2)
+   ✓ 임베딩 저장 완료
+
+[12/66] ENTP+D+7 / superior
+   카테고리: challenging
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 3284949f-3a93-4a70-9592-ba2c22e42c00)
+   ✓ 임베딩 저장 완료
+
+[13/66] ENFJ+I+2 / superior
+   카테고리: team_building
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 3f7eaea7-6955-4050-8238-60977468cd6f)
+   ✓ 임베딩 저장 완료
+
+[14/66] ENTJ+D+8 / superior
+   카테고리: strategic
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 288724b2-a6af-46f3-a57a-2eb735688df3)
+   ✓ 임베딩 저장 완료
+
+[15/66] ISTJ+C+6 / subordinate
+   카테고리: risk_management
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: d7a2617e-3e12-4789-abac-b32769cef212)
+   ✓ 임베딩 저장 완료
+
+[16/66] ISTJ+SC+6 / peer
+   카테고리: quality_control
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 3832fa93-adc0-437f-851a-d8c6bbde68d4)
+   ✓ 임베딩 저장 완료
+
+[17/66] ISFJ+S+2 / subordinate
+   카테고리: caring
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 1400db48-1c09-4021-a53a-b4fb9c35ce8e)
+   ✓ 임베딩 저장 완료
+
+[18/66] ISFJ+IS+9 / subordinate
+   카테고리: mediating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 4e9da188-aaa9-4f8f-92ce-5a22ac6afd6e)
+   ✓ 임베딩 저장 완료
+
+[19/66] ESTJ+D+8 / subordinate
+   카테고리: accountability
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 8e3baaac-8268-4e0c-9a45-8258de6d5a78)
+   ✓ 임베딩 저장 완료
+
+[20/66] ESTJ+DC+3 / peer
+   카테고리: competing
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 27996900-e3ef-42e0-b16e-23e5a1b29c6f)
+   ✓ 임베딩 저장 완료
+
+[21/66] ESFJ+I+2 / subordinate
+   카테고리: appreciating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 3ba7cc17-8e9f-49e6-bcc5-ea15ab0ddd17)
+   ✓ 임베딩 저장 완료
+
+[22/66] ESFJ+IS+6 / peer
+   카테고리: harmonizing
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 922297b0-432d-407a-a32b-97f63bc9efc4)
+   ✓ 임베딩 저장 완료
+
+[23/66] ISTP+C+5 / peer
+   카테고리: troubleshooting
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 9055a7a0-e853-4b64-8dc8-33271a889142)
+   ✓ 임베딩 저장 완료
+
+[24/66] ISTP+S+9 / subordinate
+   카테고리: guiding
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: e49d8d95-9303-4397-a829-9f5b378d8ca5)
+   ✓ 임베딩 저장 완료
+
+[25/66] ESTP+DI+8 / peer
+   카테고리: negotiating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 1f189b5a-8bef-479f-91e4-53e6cee2cf95)
+   ✓ 임베딩 저장 완료
+
+[26/66] ESTP+D+7 / subordinate
+   카테고리: energizing
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: a2df3b4e-b2e3-43ab-a38a-f4f33786e151)
+   ✓ 임베딩 저장 완료
+
+[27/66] ESFP+I+7 / subordinate
+   카테고리: motivating
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 60510da7-0b3a-49a2-a2ec-a87f6ec76124)
+   ✓ 임베딩 저장 완료
+
+[28/66] ESFP+IS+2 / peer
+   카테고리: socializing
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 1c021235-d26a-40a8-824e-64c80f69cd2c)
+   ✓ 임베딩 저장 완료
+
+[29/66] INTJ+C+5 / subordinate
+   카테고리: strategic_planning
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 7b9fb611-247a-4691-b6ec-223e5f54a0f1)
+   ✓ 임베딩 저장 완료
+
+[30/66] INTJ+CD+1 / superior
+   카테고리: system_improvement
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: f5335b1e-223d-4c0b-888c-21b6c5bd4f08)
+   ✓ 임베딩 저장 완료
+
+[31/66] INFJ+IS+2 / peer
+   카테고리: deep_connection
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: d997406f-6993-418c-9b87-16b663a105b8)
+   ✓ 임베딩 저장 완료
+
+[32/66] INFJ+I+4 / subordinate
+   카테고리: inspiring_growth
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 529ba19e-f935-428f-99ae-14caef917ed1)
+   ✓ 임베딩 저장 완료
+
+[33/66] ENTJ+DI+3 / peer
+   카테고리: leading_initiative
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: f63127f6-20ab-40c1-a0ad-fd01fedc0975)
+   ✓ 임베딩 저장 완료
+
+[34/66] ENTJ+D+8 / subordinate
+   카테고리: demanding_excellence
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 4e4521e4-b99d-4c9d-bee7-5b4908d0b0af)
+   ✓ 임베딩 저장 완료
+
+[35/66] ENFJ+DI+3 / peer
+   카테고리: inspiring_collaboration
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: b25ef8b7-a85d-41d6-94ba-bf606a57d149)
+   ✓ 임베딩 저장 완료
+
+[36/66] ENFJ+I+2 / subordinate
+   카테고리: developing_talent
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 95f07c3d-f4d2-406c-8ec9-bae357e0412e)
+   ✓ 임베딩 저장 완료
+
+[37/66] ENTP+DI+3 / peer
+   카테고리: brainstorming
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 09d1837b-e22a-49e2-8e9e-3dd69560d927)
+   ✓ 임베딩 저장 완료
+
+[38/66] ENTP+D+7 / subordinate
+   카테고리: challenging_thinking
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 404d6cd2-8321-4d85-ac7b-449fc1054619)
+   ✓ 임베딩 저장 완료
+
+[39/66] ENFP+DI+4 / peer
+   카테고리: creative_collaboration
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 494adc3e-a4a6-430c-8377-de4a2f73224b)
+   ✓ 임베딩 저장 완료
+
+[40/66] ENFP+I+7 / subordinate
+   카테고리: exploring_possibilities
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 14b32f79-6f7b-429e-b939-44ac39322136)
+   ✓ 임베딩 저장 완료
+
+[41/66] ISTJ+C+1 / peer
+   카테고리: process_improvement
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 9dda53d0-fa08-41d2-9580-6af312da6d58)
+   ✓ 임베딩 저장 완료
+
+[42/66] ISTJ+S+6 / peer
+   카테고리: reliable_partnership
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 28c34a84-dd06-42ef-92b1-df0053843e4b)
+   ✓ 임베딩 저장 완료
+
+[43/66] ISFJ+S+6 / peer
+   카테고리: dependable_support
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: a7dd1b86-82fe-4f92-839d-8f4638bbae0b)
+   ✓ 임베딩 저장 완료
+
+[44/66] ISFJ+IS+2 / peer
+   카테고리: nurturing
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 2d52eebf-188e-4484-988d-9b1d1c7ea05d)
+   ✓ 임베딩 저장 완료
+
+[45/66] ESTJ+DC+8 / peer
+   카테고리: decisive_action
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 28428227-e19f-42d3-b7ab-f9649e986d43)
+   ✓ 임베딩 저장 완료
+
+[46/66] ESTJ+D+3 / peer
+   카테고리: achieving_goals
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: e930238b-258c-485d-89a9-198c5c5c37df)
+   ✓ 임베딩 저장 완료
+
+[47/66] ESFJ+I+6 / peer
+   카테고리: team_cohesion
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: d621c0b5-b581-4a4f-89cc-b3ed0d5e5dc0)
+   ✓ 임베딩 저장 완료
+
+[48/66] ESFJ+IS+2 / peer
+   카테고리: friendly_support
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 82043d5c-cbaa-47f7-ad02-208ec7336f79)
+   ✓ 임베딩 저장 완료
+
+[49/66] ISTP+C+9 / peer
+   카테고리: calm_problem_solving
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: dddb2f1c-6907-4f40-918c-4908ab50493e)
+   ✓ 임베딩 저장 완료
+
+[50/66] ISTP+S+5 / peer
+   카테고리: technical_exchange
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 7ef248e3-a8ef-48e0-b683-347e196408e4)
+   ✓ 임베딩 저장 완료
+
+[51/66] ESTP+D+8 / peer
+   카테고리: bold_execution
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 584327dd-a61a-4c4a-8ea3-21c76d1c34eb)
+   ✓ 임베딩 저장 완료
+
+[52/66] ESTP+DI+7 / peer
+   카테고리: fun_collaboration
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: a64921ff-a1fe-4aea-b8b3-fe62c19729d0)
+   ✓ 임베딩 저장 완료
+
+[53/66] ESFP+I+2 / peer
+   카테고리: cheerful_helping
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 0889a016-6807-4ce8-beda-b54bf59f6242)
+   ✓ 임베딩 저장 완료
+
+[54/66] ESFP+IS+9 / peer
+   카테고리: peaceful_enjoyment
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 04b6f79c-6be3-4932-8e8b-9743b4dd2c54)
+   ✓ 임베딩 저장 완료
+
+[55/66] INTJ+C+1 / peer
+   카테고리: perfectionist_planning
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 40d9a25d-50b1-4c3f-82f7-53d3a8b33d1d)
+   ✓ 임베딩 저장 완료
+
+[56/66] INTJ+CD+5 / peer
+   카테고리: deep_analysis
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 74a8f6af-ceb1-4620-b15a-8f635b97f889)
+   ✓ 임베딩 저장 완료
+
+[57/66] INFJ+I+2 / peer
+   카테고리: meaningful_support
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 997eb964-2713-49ac-a7e5-75024ae4cce5)
+   ✓ 임베딩 저장 완료
+
+[58/66] INFJ+IS+4 / peer
+   카테고리: authentic_connection
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 06c74fb4-6e7c-43cf-8756-cea16a715453)
+   ✓ 임베딩 저장 완료
+
+[59/66] ENTJ+DI+8 / peer
+   카테고리: powerful_leadership
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: c8766957-56db-463a-8a8c-b61874e0c667)
+   ✓ 임베딩 저장 완료
+
+[60/66] ENTJ+D+3 / peer
+   카테고리: competitive_excellence
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 77d33bd1-576a-43dd-92de-b33d31d6d297)
+   ✓ 임베딩 저장 완료
+
+[61/66] ENFJ+I+3 / peer
+   카테고리: charismatic_motivation
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 1f86e16a-bb16-482d-acd1-f5f0f6f4437a)
+   ✓ 임베딩 저장 완료
+
+[62/66] ENFJ+DI+2 / peer
+   카테고리: empowering_partnership
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 4664bf56-5769-4f85-ad7b-d8ffc2604af8)
+   ✓ 임베딩 저장 완료
+
+[63/66] ENTP+D+3 / peer
+   카테고리: innovative_competition
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 5fc9c887-e6b7-44e1-a345-52386360532e)
+   ✓ 임베딩 저장 완료
+
+[64/66] ENTP+DI+7 / peer
+   카테고리: adventurous_exploration
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 8e6c973a-b231-4d87-9288-bcd0380c0d95)
+   ✓ 임베딩 저장 완료
+
+[65/66] ENFP+I+4 / peer
+   카테고리: authentic_creativity
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 0c6d86b1-288d-4339-a21e-35a5e8133ccf)
+   ✓ 임베딩 저장 완료
+
+[66/66] ENFP+DI+7 / peer
+   카테고리: enthusiastic_innovation
+   ✓ 임베딩 생성 완료 (1536차원)
+   ✓ 패턴 저장 완료 (ID: 2ef362c1-f128-4d3d-b5de-e724fa003487)
+   ✓ 임베딩 저장 완료
+
+
+================================================================================
+
+✅ 시딩 완료!
+   성공: 66개
+   실패: 0개
+
+📊 전체 골든 패턴: 117개

@@ -84,9 +84,14 @@ export async function searchSimilarPatterns(
   mbti?: string,
   relationshipType?: string,
   limit: number = 10,
-  threshold: number = 0.7
+  threshold: number = 0.7,
+  enneagram?: string
 ): Promise<Array<{ id: string; similarity: number; pattern_text: string }>> {
   const supabase = getSupabaseClient()
+
+  // Extract base enneagram number (remove wing)
+  // "5w6" -> "5", "4w3" -> "4"
+  const enneagramBase = enneagram?.match(/^\d+/)?.[0] || null
 
   const { data, error } = await supabase.rpc('search_similar_patterns', {
     query_embedding: JSON.stringify(embedding),
@@ -94,6 +99,7 @@ export async function searchSimilarPatterns(
     match_count: limit,
     mbti_filter: mbti || null,
     relationship_filter: relationshipType || null,
+    enneagram_filter: enneagramBase,
   })
 
   if (error) {

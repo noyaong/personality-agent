@@ -99,8 +99,9 @@ async function enrichWithConversationPatterns(
       embedding,
       persona.mbti,
       relationshipType,
-      5, // 상위 5개 패턴
-      0.7 // 70% 이상 유사도
+      3, // 상위 3개 패턴
+      0.3, // 30% 이상 유사도 (사용자 쿼리와 구조화된 패턴 간의 차이 고려)
+      persona.enneagram // 애니어그램 필터 추가
     );
 
     if (similarPatterns.length === 0) {
