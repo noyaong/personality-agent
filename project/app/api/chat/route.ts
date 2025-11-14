@@ -102,7 +102,7 @@ async function enrichWithConversationPatterns(
       persona.mbti,
       relationshipType,
       3, // 상위 3개 패턴
-      0.3, // 30% 이상 유사도 (사용자 쿼리와 구조화된 패턴 간의 차이 고려)
+      0.15, // 15% 이상 유사도 (짧은 사용자 메시지와 구조화된 패턴 간의 자연스러운 차이 고려)
       persona.enneagram // 애니어그램 필터 추가
     );
 
@@ -112,19 +112,27 @@ async function enrichWithConversationPatterns(
 
     // 패턴 사용 추적 (비동기로 실행, 실패해도 대화는 계속)
     if (supabase) {
-      similarPatterns.forEach(async (pattern) => {
-        try {
-          await supabase.rpc('increment_pattern_usage', {
-            p_pattern_id: pattern.id,
-            p_similarity_score: pattern.similarity,
-            p_user_message: userMessage,
-            p_chat_session_id: chatSessionId || null,
-            p_relationship_type: relationshipType || null
-          });
-        } catch (error) {
-          console.error('Failed to track pattern usage:', error);
-        }
-      });
+      Promise.all(
+        similarPatterns.map(async (pattern) => {
+          try {
+            const { error } = await supabase.rpc('increment_pattern_usage', {
+              p_pattern_id: pattern.id,
+              p_similarity_score: pattern.similarity,
+              p_user_message: userMessage,
+              p_chat_session_id: chatSessionId || null,
+              p_relationship_type: relationshipType || null
+            });
+
+            if (error) {
+              console.error('Failed to track pattern usage:', error);
+            } else {
+              console.log('✅ Pattern usage tracked:', pattern.id);
+            }
+          } catch (error) {
+            console.error('Exception tracking pattern usage:', error);
+          }
+        })
+      ).catch(err => console.error('Failed to track some patterns:', err));
     }
 
     // 패턴 정보를 텍스트로 변환

@@ -21,6 +21,7 @@ function ChatContent() {
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [relationshipType, setRelationshipType] = useState<'superior' | 'peer' | 'subordinate'>('peer');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -190,7 +191,7 @@ function ChatContent() {
             .insert({
               user_id: user.id,
               persona_profile_id: personaId,
-              relationship_type: 'peer',
+              relationship_type: relationshipType,
               session_status: 'active',
             })
             .select()
@@ -200,6 +201,12 @@ function ChatContent() {
             console.error('Failed to create session:', sessionError);
           } else {
             currentSessionId = newSession.id;
+          }
+        } else {
+          // 기존 세션의 relationship_type 가져오기
+          const existingSession = sessions?.[0];
+          if (existingSession?.relationship_type) {
+            setRelationshipType(existingSession.relationship_type as 'superior' | 'peer' | 'subordinate');
           }
         }
 
@@ -284,7 +291,7 @@ function ChatContent() {
     await chat.sendMessage({
       text: userMessage,
     }, {
-      body: { personaId },
+      body: { personaId, relationshipType },
     });
   };
 
@@ -322,10 +329,47 @@ function ChatContent() {
                 {persona.persona_description}
               </p>
             )}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <Badge variant="outline" className="bg-purple-50 border-purple-200 text-purple-700">{persona.mbti}</Badge>
               <Badge variant="outline" className="bg-cyan-50 border-cyan-200 text-cyan-700">{persona.disc}</Badge>
               <Badge variant="outline" className="bg-pink-50 border-pink-200 text-pink-700">유형 {persona.enneagram}</Badge>
+            </div>
+
+            {/* 관계 타입 선택 */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">대화 관계:</span>
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant={relationshipType === 'superior' ? 'default' : 'outline'}
+                  onClick={() => setRelationshipType('superior')}
+                  className={relationshipType === 'superior' ? 'gradient-bg text-white' : ''}
+                  disabled={!!sessionId && chat.messages.length > 0}
+                >
+                  상급자
+                </Button>
+                <Button
+                  size="sm"
+                  variant={relationshipType === 'peer' ? 'default' : 'outline'}
+                  onClick={() => setRelationshipType('peer')}
+                  className={relationshipType === 'peer' ? 'gradient-bg text-white' : ''}
+                  disabled={!!sessionId && chat.messages.length > 0}
+                >
+                  동료
+                </Button>
+                <Button
+                  size="sm"
+                  variant={relationshipType === 'subordinate' ? 'default' : 'outline'}
+                  onClick={() => setRelationshipType('subordinate')}
+                  className={relationshipType === 'subordinate' ? 'gradient-bg text-white' : ''}
+                  disabled={!!sessionId && chat.messages.length > 0}
+                >
+                  하급자
+                </Button>
+              </div>
+              {sessionId && chat.messages.length > 0 && (
+                <span className="text-xs text-muted-foreground">(대화 중에는 변경 불가)</span>
+              )}
             </div>
           </div>
         </div>
