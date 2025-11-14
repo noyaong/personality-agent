@@ -88,7 +88,9 @@ function generatePersonaPrompt(persona: any): string {
 async function enrichWithConversationPatterns(
   userMessage: string,
   persona: any,
-  relationshipType?: string
+  relationshipType?: string,
+  supabase?: any,
+  chatSessionId?: string
 ): Promise<string> {
   try {
     // 사용자 메시지의 임베딩 생성
@@ -106,6 +108,23 @@ async function enrichWithConversationPatterns(
 
     if (similarPatterns.length === 0) {
       return '';
+    }
+
+    // 패턴 사용 추적 (비동기로 실행, 실패해도 대화는 계속)
+    if (supabase) {
+      similarPatterns.forEach(async (pattern) => {
+        try {
+          await supabase.rpc('increment_pattern_usage', {
+            p_pattern_id: pattern.id,
+            p_similarity_score: pattern.similarity,
+            p_user_message: userMessage,
+            p_chat_session_id: chatSessionId || null,
+            p_relationship_type: relationshipType || null
+          });
+        } catch (error) {
+          console.error('Failed to track pattern usage:', error);
+        }
+      });
     }
 
     // 패턴 정보를 텍스트로 변환
@@ -190,7 +209,9 @@ export async function POST(req: Request) {
         const patternsContext = await enrichWithConversationPatterns(
           contentString,
           persona,
-          relationshipType
+          relationshipType,
+          supabase,
+          undefined // chatSessionId는 선택사항
         );
 
         if (patternsContext) {
